@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI PM 岗位判断工具</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Capybara AI PM Judge</p>
+          <h1>先别慌着投，我先帮你拆这个岗位。</h1>
+          <p class="subtitle">
+            输入 JD、简历和你的当前状态，拿到一份更像真实投递判断的结果。
+          </p>
+        </div>
+        <div class="capybara-card">
+          <div class="capybara-face" aria-hidden="true">
+            <span class="ear left"></span>
+            <span class="ear right"></span>
+            <span class="eye left"></span>
+            <span class="eye right"></span>
+            <span class="nose"></span>
+          </div>
+          <p class="capybara-line">先看岗位，再看你。别让标题骗你。</p>
+        </div>
+      </section>
+
+      <section class="tool-grid">
+        <form id="analyze-form" class="panel input-panel">
+          <div class="panel-head">
+            <h2>输入</h2>
+            <button type="button" id="load-demo" class="ghost-button">加载示例</button>
+          </div>
+
+          <label class="field">
+            <span>AI PM JD</span>
+            <textarea
+              id="jd-text"
+              name="jd_text"
+              rows="10"
+              placeholder="粘贴岗位 JD 文本"
+              required
+            ></textarea>
+          </label>
+
+          <label class="field">
+            <span>简历文本</span>
+            <textarea
+              id="resume-text"
+              name="resume_text"
+              rows="10"
+              placeholder="粘贴你的简历文本"
+              required
+            ></textarea>
+          </label>
+
+          <div class="select-grid">
+            <label class="field">
+              <span>当前状态</span>
+              <select id="user-level" name="user_level">
+                <option value="新人">新人</option>
+                <option value="转岗PM" selected>转岗PM</option>
+                <option value="有经验PM">有经验PM</option>
+                <option value="有AI项目经验">有AI项目经验</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>目标</span>
+              <select id="goal" name="goal">
+                <option value="求稳">求稳</option>
+                <option value="冲高薪">冲高薪</option>
+                <option value="转AI" selected>转AI</option>
+                <option value="找长期主线">找长期主线</option>
+              </select>
+            </label>
+          </div>
+
+          <button type="submit" id="submit-button" class="primary-button">开始分析</button>
+          <p id="status-line" class="status-line">先贴内容，再开始判断。</p>
+        </form>
+
+        <section class="panel result-panel" id="result-panel">
+          <div class="panel-head">
+            <h2>结果</h2>
+            <span class="result-badge idle" id="recommendation-badge">等待分析</span>
+          </div>
+
+          <div class="result-summary" id="summary-box">
+            <p class="summary-text">分析结果会显示在这里。</p>
+          </div>
+
+          <div class="metrics-row">
+            <article class="metric-card">
+              <span class="metric-label">匹配度</span>
+              <strong class="metric-value" id="match-score">--</strong>
+            </article>
+            <article class="metric-card">
+              <span class="metric-label">岗位类型</span>
+              <strong class="metric-value small" id="job-type">--</strong>
+            </article>
+          </div>
+
+          <div class="result-sections">
+            <section class="result-block">
+              <h3>你能打的点</h3>
+              <ul id="strengths-list" class="result-list">
+                <li>等待分析</li>
+              </ul>
+            </section>
+
+            <section class="result-block">
+              <h3>会卡住的点</h3>
+              <ul id="risks-list" class="result-list">
+                <li>等待分析</li>
+              </ul>
+            </section>
+
+            <section class="result-block">
+              <h3>下一步动作</h3>
+              <ul id="actions-list" class="result-list">
+                <li>等待分析</li>
+              </ul>
+            </section>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
