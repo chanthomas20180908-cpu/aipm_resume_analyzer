@@ -3,6 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
+from app.jd_parser import build_jd_analysis
+from app.resume_parser import build_candidate_analysis
+
 
 JD_SIGNAL_KEYWORDS: Dict[str, List[str]] = {
     "ai_density": [
@@ -307,6 +310,8 @@ def _summary(recommendation: str, job_type: str, strengths: List[str], risks: Li
 def analyze_job_fit(jd_text: str, resume_text: str, user_level: str, goal: str) -> Dict[str, object]:
     job = _scan_keywords(jd_text, JD_SIGNAL_KEYWORDS)
     candidate = _scan_keywords(resume_text, RESUME_SIGNAL_KEYWORDS)
+    jd_analysis = build_jd_analysis(jd_text)
+    candidate_analysis = build_candidate_analysis(resume_text)
     job_type = _job_type(job.scores)
     match_score, strengths, candidate_risks = _score_alignment(job.scores, candidate.scores, goal)
     job_risks = _job_risks(job.scores, job_type)
@@ -319,6 +324,8 @@ def analyze_job_fit(jd_text: str, resume_text: str, user_level: str, goal: str) 
         "recommendation": recommendation,
         "match_score": match_score,
         "job_type": job_type,
+        "job_analysis": jd_analysis["normalized_jd"],
+        "candidate_analysis": candidate_analysis,
         "job_signals": job.scores,
         "candidate_signals": candidate.scores,
         "strengths": strengths,
@@ -329,6 +336,9 @@ def analyze_job_fit(jd_text: str, resume_text: str, user_level: str, goal: str) 
             "user_level": user_level,
             "goal": goal,
             "jd_hits": job.hits,
+            "jd_extraction": jd_analysis["fact_extraction"],
+            "jd_extraction_meta": jd_analysis["extraction_meta"],
             "resume_hits": candidate.hits,
+            "resume_extraction": candidate_analysis,
         },
     }

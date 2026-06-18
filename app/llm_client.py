@@ -6,7 +6,12 @@ from typing import Any, Dict, List
 
 from openai import OpenAI
 
-from app.prompts import LLM_RESULT_SYSTEM_PROMPT, build_llm_result_user_prompt
+from app.prompts import (
+    LLM_RESULT_SYSTEM_PROMPT,
+    V2_NARRATOR_SYSTEM_PROMPT,
+    build_llm_result_user_prompt,
+    build_v2_narrator_user_prompt,
+)
 
 
 DEFAULT_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
@@ -112,3 +117,52 @@ def enhance_analysis_result(
         },
     }
     return enhanced
+
+
+def enhance_v2_narration(
+    *,
+    jd_text: str,
+    resume_text: str,
+    user_level: str,
+    goal: str,
+    job_analysis: Dict[str, Any],
+    candidate_analysis: Dict[str, Any],
+    match_result: Dict[str, Any],
+    recommendation_result: Dict[str, Any],
+    fallback_result: Dict[str, Any],
+) -> Dict[str, Any]:
+    client = _build_client()
+    model = os.getenv("OPENAI_MODEL", DEFAULT_MODEL)
+    payload = {
+        "user_level": user_level,
+        "goal": goal,
+        "jd_text": jd_text,
+        "resume_text": resume_text,
+        "job_analysis": job_analysis,
+        "candidate_analysis": candidate_analysis,
+        "match_result": match_result,
+        "recommendation_result": recommendation_result,
+    }
+    response = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": V2_NARRATOR_SYSTEM_PROMPT},
+            {"role": "user", "content": build_v2_narrator_user_prompt(payload)},
+        ],
+        temperature=0.3,
+    )
+    content = response.choices[0].message.content or ""
+    parsed = _extract_json(content)
+    return {
+        "summary": str(parsed.get("summary") or fallback_result["summary"]).strip(),
+        "strengths": _sanitize_list(parsed.get("strengths"), fallback_result["strengths"]),
+        "risks": _sanitize_list(parsed.get("risks"), fallback_result["risks"]),
+        "next_actions": _sanitize_list(parsed.get("next_actions"), fallback_result["next_actions"]),
+        "meta": {
+            "llm": {
+                "used": True,
+                "provider": "dashscope-compatible",
+                "model": model,
+            }
+        },
+    }

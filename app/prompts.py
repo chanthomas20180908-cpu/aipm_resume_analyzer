@@ -12,6 +12,14 @@ LLM_RESULT_SYSTEM_PROMPT = (
     "输出必须是 JSON，不要输出 markdown，不要解释。"
 )
 
+V2_NARRATOR_SYSTEM_PROMPT = (
+    "你是一个谨慎的 AI PM 求职判断助手。"
+    "你只能根据用户提供的 JD、简历、岗位分析、候选人分析、匹配结果和既定 recommendation 生成解释。"
+    "你不能修改 recommendation、weighted_match_score、job_risk_level、candidate_readiness_level。"
+    "你不能编造不存在的岗位事实和候选人经历。"
+    "输出必须是 JSON，不要输出 markdown，不要解释。"
+)
+
 
 def build_llm_result_user_prompt(payload: Dict[str, Any]) -> str:
     return (
@@ -19,5 +27,19 @@ def build_llm_result_user_prompt(payload: Dict[str, Any]) -> str:
         "返回 JSON，字段必须只有：summary, strengths, risks, next_actions。"
         "约束：summary 是一句中文结论；strengths、risks、next_actions 都是 2-4 条中文短句数组；"
         "要尽量引用 JD 或简历里的真实线索；不要改 recommendation；不要输出空字段。\n\n"
+        f"{json.dumps(payload, ensure_ascii=False)}"
+    )
+
+
+def build_v2_narrator_user_prompt(payload: Dict[str, Any]) -> str:
+    return (
+        "请基于下面的信息，生成克制、具体、可执行的中文结果文案。"
+        "返回 JSON，字段必须只有：summary, strengths, risks, next_actions。"
+        "约束："
+        "summary 是一句中文结论；"
+        "strengths、risks、next_actions 都是 2-4 条中文短句数组；"
+        "要优先引用 JD 或简历里的真实线索；"
+        "不得修改 recommendation、weighted_match_score、job_risk_level、candidate_readiness_level；"
+        "不得补充输入中不存在的新事实。\n\n"
         f"{json.dumps(payload, ensure_ascii=False)}"
     )
