@@ -12,6 +12,7 @@ from app.prompts import (
     build_llm_result_user_prompt,
     build_v2_narrator_user_prompt,
 )
+from app.trace_logger import TraceLogger
 
 
 DEFAULT_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
@@ -130,6 +131,7 @@ def enhance_v2_narration(
     match_result: Dict[str, Any],
     recommendation_result: Dict[str, Any],
     fallback_result: Dict[str, Any],
+    trace_logger: TraceLogger | None = None,
 ) -> Dict[str, Any]:
     client = _build_client()
     model = os.getenv("OPENAI_MODEL", DEFAULT_MODEL)
@@ -143,16 +145,25 @@ def enhance_v2_narration(
         "match_result": match_result,
         "recommendation_result": recommendation_result,
     }
+    user_prompt = build_v2_narrator_user_prompt(payload)
     response = client.chat.completions.create(
         model=model,
         messages=[
             {"role": "system", "content": V2_NARRATOR_SYSTEM_PROMPT},
-            {"role": "user", "content": build_v2_narrator_user_prompt(payload)},
+            {"role": "user", "content": user_prompt},
         ],
         temperature=0.3,
     )
     content = response.choices[0].message.content or ""
     parsed = _extract_json(content)
+    if trace_logger:
+        trace_logger.add_llm(
+            model=model,
+            system_prompt=V2_NARRATOR_SYSTEM_PROMPT,
+            user_prompt=user_prompt,
+            raw_response=content,
+            parsed_response=parsed,
+        )
     return {
         "summary": str(parsed.get("summary") or fallback_result["summary"]).strip(),
         "strengths": _sanitize_list(parsed.get("strengths"), fallback_result["strengths"]),

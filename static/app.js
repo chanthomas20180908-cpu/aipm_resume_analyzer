@@ -6,9 +6,60 @@ const recommendationBadge = document.getElementById("recommendation-badge");
 const summaryBox = document.getElementById("summary-box");
 const matchScore = document.getElementById("match-score");
 const jobType = document.getElementById("job-type");
+const businessDomain = document.getElementById("business-domain");
+const aiMaturity = document.getElementById("ai-maturity");
+const deliveryMode = document.getElementById("delivery-mode");
+const technicalDepth = document.getElementById("technical-depth");
+const gateStatus = document.getElementById("gate-status");
+const jobRiskLevel = document.getElementById("job-risk-level");
+const readinessLevel = document.getElementById("readiness-level");
+const confidenceLevel = document.getElementById("confidence-level");
+const confidenceScore = document.getElementById("confidence-score");
+const dimensionList = document.getElementById("dimension-list");
 const strengthsList = document.getElementById("strengths-list");
 const risksList = document.getElementById("risks-list");
 const actionsList = document.getElementById("actions-list");
+
+const FIELD_LABELS = {
+  enterprise_collaboration: "企业协作 / 内部效率",
+  internal_ai_platform: "内部 AI 平台",
+  ai_workflow_tool: "AI 工作流工具",
+  marketing_ai_product: "营销 AI 产品",
+  robotics_ai_product: "机器人 / 多模态 AI",
+  general_ai_pm: "通用 AI 产品",
+  marketing: "营销",
+  collaboration: "协作 / 内部效率",
+  knowledge_management: "知识管理",
+  education: "教育",
+  robotics: "机器人 / 多模态",
+  efficiency: "效率工具",
+  general: "通用",
+  concept_heavy: "概念偏重",
+  application_driven: "应用落地型",
+  deep_delivery: "深度交付型",
+  "0_to_1": "从 0 到 1",
+  "1_to_10": "持续迭代",
+  platform: "平台型",
+  scenario_driven: "场景型",
+  mixed: "混合型",
+  low: "低",
+  medium: "中",
+  high: "高",
+  ready: "准备好了",
+  "near-ready": "接近可投",
+  stretch: "需要拉伸",
+  "not-ready": "暂不适合",
+};
+
+const DIMENSION_LABELS = {
+  ai_understanding: "AI 理解",
+  scenario_abstraction: "场景抽象",
+  workflow_design: "工作流设计",
+  delivery_execution: "交付执行",
+  data_metrics: "数据与指标",
+  stakeholder_push: "跨团队推进",
+  business_fit: "业务贴合度",
+};
 
 function setList(element, items) {
   element.innerHTML = "";
@@ -21,6 +72,49 @@ function setList(element, items) {
 
 function setStatus(message) {
   statusLine.textContent = message;
+}
+
+function displayValue(value) {
+  if (value === null || value === undefined || value === "") {
+    return "--";
+  }
+  return FIELD_LABELS[value] || value;
+}
+
+function setText(element, value) {
+  element.textContent = displayValue(value);
+}
+
+function renderDimensions(scores, confidence) {
+  dimensionList.innerHTML = "";
+  const entries = Object.entries(scores || {});
+  if (!entries.length) {
+    dimensionList.innerHTML = `<div class="dimension-item empty">等待分析</div>`;
+    confidenceScore.textContent = "--";
+    return;
+  }
+
+  entries.forEach(([key, value]) => {
+    const item = document.createElement("div");
+    item.className = "dimension-item";
+    const percent = Math.max(0, Math.min(100, (Number(value) / 5) * 100));
+    item.innerHTML = `
+      <div class="dimension-head">
+        <span class="dimension-label">${DIMENSION_LABELS[key] || key}</span>
+        <span class="dimension-score">${value}/5</span>
+      </div>
+      <div class="dimension-bar">
+        <span class="dimension-bar-fill" style="width:${percent}%"></span>
+      </div>
+    `;
+    dimensionList.appendChild(item);
+  });
+
+  if (confidence && typeof confidence.score !== "undefined") {
+    confidenceScore.textContent = `判断置信度 ${confidence.score}`;
+  } else {
+    confidenceScore.textContent = "--";
+  }
 }
 
 function setRecommendation(value) {
@@ -86,7 +180,16 @@ async function handleSubmit(event) {
     setRecommendation(result.recommendation);
     summaryBox.innerHTML = `<p class="summary-text">${result.summary}</p>`;
     matchScore.textContent = `${result.match_score}`;
-    jobType.textContent = result.job_type;
+    setText(jobType, result.job_type);
+    setText(businessDomain, result.job_analysis?.job_profile?.business_domain);
+    setText(aiMaturity, result.job_analysis?.job_profile?.ai_maturity);
+    setText(deliveryMode, result.job_analysis?.job_profile?.delivery_mode);
+    setText(technicalDepth, result.job_analysis?.job_requirements?.technical_depth);
+    gateStatus.textContent = result.match_result?.gate_check_result?.passed ? "通过" : "未通过";
+    setText(jobRiskLevel, result.recommendation_result?.job_risk_level);
+    setText(readinessLevel, result.recommendation_result?.candidate_readiness_level);
+    setText(confidenceLevel, result.match_result?.confidence?.level);
+    renderDimensions(result.match_result?.dimension_scores, result.match_result?.confidence);
     setList(strengthsList, result.strengths);
     setList(risksList, result.risks);
     setList(actionsList, result.next_actions);

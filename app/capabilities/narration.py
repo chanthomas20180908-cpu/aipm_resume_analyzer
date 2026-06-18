@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Dict, List
 
 from app.llm_client import LLMEnhancementError, enhance_v2_narration, llm_is_configured
+from app.trace_logger import TraceLogger
 
 
 def _default_summary(recommendation: str, job_analysis: Dict[str, object], match_result: Dict[str, object]) -> str:
@@ -61,6 +62,7 @@ def run(
     candidate_analysis: Dict[str, object],
     match_result: Dict[str, object],
     recommendation_result: Dict[str, object],
+    trace_logger: TraceLogger | None = None,
 ) -> Dict[str, object]:
     base = {
         "summary": _default_summary(recommendation_result["recommendation"], job_analysis, match_result),
@@ -82,6 +84,7 @@ def run(
             match_result=match_result,
             recommendation_result=recommendation_result,
             fallback_result=base,
+            trace_logger=trace_logger,
         )
     except LLMEnhancementError as exc:
         base["meta"]["llm"]["error"] = str(exc)

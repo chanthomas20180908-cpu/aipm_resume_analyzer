@@ -276,6 +276,13 @@ textarea {
   margin: 16px 0;
 }
 
+.insight-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
 .metric-card {
   padding: 18px;
   border-radius: 18px;
@@ -307,6 +314,105 @@ textarea {
   border: 1px solid var(--line);
 }
 
+.compact-block {
+  padding: 16px 18px;
+}
+
+.panel-subhead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.subhead-note {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.kv-list {
+  margin: 12px 0 0;
+  display: grid;
+  gap: 10px;
+}
+
+.kv-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(104, 85, 68, 0.1);
+}
+
+.kv-row:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.kv-row dt,
+.kv-row dd {
+  margin: 0;
+  font-size: 14px;
+}
+
+.kv-row dt {
+  color: var(--muted);
+}
+
+.kv-row dd {
+  text-align: right;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.dimension-list {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.dimension-item {
+  display: grid;
+  gap: 8px;
+}
+
+.dimension-item.empty {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.dimension-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.dimension-label {
+  color: var(--ink);
+}
+
+.dimension-score {
+  color: var(--muted);
+}
+
+.dimension-bar {
+  position: relative;
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(109, 148, 100, 0.12);
+  overflow: hidden;
+}
+
+.dimension-bar-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+}
+
 .result-list {
   margin: 12px 0 0;
   padding-left: 18px;
@@ -328,7 +434,8 @@ textarea {
   .hero,
   .tool-grid,
   .select-grid,
-  .metrics-row {
+  .metrics-row,
+  .insight-grid {
     grid-template-columns: 1fr;
   }
 
