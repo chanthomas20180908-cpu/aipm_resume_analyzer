@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from app.analyzer import analyze_job_fit
+from app.llm_client import LLMEnhancementError, enhance_analysis_result, llm_is_configured
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -40,7 +41,7 @@ def index() -> FileResponse:
 
 @app.get("/health")
 def health() -> dict:
-    return {"ok": True}
+    return {"ok": True, "llm_configured": llm_is_configured()}
 
 
 @app.get("/demo")
@@ -61,9 +62,31 @@ def demo() -> dict:
 
 @app.post("/analyze")
 def analyze(payload: AnalyzeRequest) -> dict:
-    return analyze_job_fit(
+    result = analyze_job_fit(
         jd_text=payload.jd_text,
         resume_text=payload.resume_text,
         user_level=payload.user_level,
         goal=payload.goal,
     )
+    result["meta"] = {
+        **result.get("meta", {}),
+        "llm": {
+            "used": False,
+            "provider": "rule-fallback",
+            "model": None,
+        },
+    }
+    if not llm_is_configured():
+        return result
+
+    try:
+        return enhance_analysis_result(
+            jd_text=payload.jd_text,
+            resume_text=payload.resume_text,
+            user_level=payload.user_level,
+            goal=payload.goal,
+            rule_result=result,
+        )
+    except LLMEnhancementError as exc:
+        result["meta"]["llm"]["error"] = str(exc)
+        return result
