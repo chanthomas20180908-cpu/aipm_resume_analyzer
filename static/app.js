@@ -144,8 +144,6 @@ async function loadDemo() {
   const data = await response.json();
   document.getElementById("jd-text").value = data.jd_text;
   document.getElementById("resume-text").value = data.resume_text;
-  document.getElementById("user-level").value = data.user_level;
-  document.getElementById("goal").value = data.goal;
   setStatus("示例已填充，可以直接开始分析。");
 }
 
@@ -155,8 +153,6 @@ async function handleSubmit(event) {
   const payload = {
     jd_text: document.getElementById("jd-text").value.trim(),
     resume_text: document.getElementById("resume-text").value.trim(),
-    user_level: document.getElementById("user-level").value,
-    goal: document.getElementById("goal").value,
   };
 
   submitButton.disabled = true;

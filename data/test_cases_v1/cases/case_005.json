@@ -1,0 +1,15 @@
+{
+  "id": "case_005",
+  "direction": "强交付、弱技术理解",
+  "jd_file": "data/test_cases_v1/jd/case_005_jd.md",
+  "resume_file": "data/test_cases_v1/resume/case_005_resume.md",
+  "jd_source_url": "https://www.zhipin.com/zhaopin/d80362d64832e5860nRy39q6EA~~/",
+  "resume_source_url": "derived_from_public_examples",
+  "candidate_type": "强交付PM，技术理解证据弱",
+  "status": "draft_standardized",
+  "notes": [
+    "用于测试系统是否会把强执行误判为足够匹配AI平台岗",
+    "后续应重点标注 technical gap"
+  ]
+}
+

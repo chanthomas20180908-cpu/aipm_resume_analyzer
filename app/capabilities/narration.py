@@ -56,8 +56,6 @@ def run(
     *,
     jd_text: str,
     resume_text: str,
-    user_level: str,
-    goal: str,
     job_analysis: Dict[str, object],
     candidate_analysis: Dict[str, object],
     match_result: Dict[str, object],
@@ -77,8 +75,6 @@ def run(
         return enhance_v2_narration(
             jd_text=jd_text,
             resume_text=resume_text,
-            user_level=user_level,
-            goal=goal,
             job_analysis=job_analysis,
             candidate_analysis=candidate_analysis,
             match_result=match_result,

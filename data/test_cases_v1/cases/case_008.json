@@ -1,0 +1,14 @@
+{
+  "id": "case_008",
+  "direction": "行业 / 场景高度相关岗",
+  "jd_file": "data/test_cases_v1/jd/case_008_jd.md",
+  "resume_file": "data/test_cases_v1/resume/case_008_resume.md",
+  "jd_source_url": "https://maimai.cn/article/detail?efid=7KMU8PrTQHSzU-GwgnKL_Q&fid=1855494418",
+  "resume_source_url": "derived_from_public_examples",
+  "candidate_type": "跨行业PM，技术理解中等但行业不贴合",
+  "status": "draft_standardized",
+  "notes": [
+    "用于测试 system 对 business_fit 和 technical_depth 的复合判断",
+    "后续应重点标注 non-compensatory gaps"
+  ]
+}

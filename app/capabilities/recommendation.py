@@ -23,7 +23,7 @@ def _recommendation_reason(recommendation: str, match_result: Dict[str, object])
     return "要么硬门槛不通过，要么岗位本身风险偏高，不建议现在投入。"
 
 
-def run(*, match_result: Dict[str, object], job_analysis: Dict[str, object], user_goal: str) -> Dict[str, object]:
+def run(*, match_result: Dict[str, object], job_analysis: Dict[str, object]) -> Dict[str, object]:
     score = int(match_result["weighted_match_score"])
     gate_passed = bool(match_result["gate_check_result"]["passed"])
     non_comp = match_result["non_compensatory_gaps"]
@@ -44,9 +44,6 @@ def run(*, match_result: Dict[str, object], job_analysis: Dict[str, object], use
         recommendation = "谨慎"
     if not gate_passed and score < 65:
         recommendation = "避开"
-    if user_goal == "求稳" and job_risk_level != "low" and recommendation == "可投":
-        recommendation = "谨慎"
-
     return {
         "recommendation": recommendation,
         "recommendation_reason": _recommendation_reason(recommendation, match_result),

@@ -23,6 +23,7 @@
 ```text
 app/
   main.py
+  trace_logger.py
   jd_parser.py
   resume_parser.py
   llm_client.py
@@ -129,6 +130,15 @@ app/
       -> llm_client.enhance_v2_narration(...) 或规则 fallback
   -> 返回最终结果
 ```
+
+当前实现里，每次 `/analyze` 还会同时创建一个 `TraceLogger`，把整条链路落盘到：
+
+- `logs/{trace_id}.md`
+
+返回结果的 `meta` 中会带：
+
+- `trace_id`
+- `trace_log_path`
 
 ## 各模块职责
 
@@ -243,6 +253,35 @@ recommendation 基于：
 
 - `LLM 可用`：调用 `enhance_v2_narration`
 - `LLM 不可用`：使用规则 fallback 文案
+
+注意：
+
+- 当前每次分析最多只调用一次 LLM
+- 这个调用只发生在 `步骤 5: 文案生成`
+- LLM 调用信息会作为 `步骤 5` 的子块写入 trace 日志，而不是独立插在其他步骤之间
+
+## Trace 日志
+
+当前 v2 架构已经内置轻量流程日志。
+
+### 目标
+
+- 看清一次分析从输入到输出的完整链路
+- 快速定位某一步的输入、输出和关键结论
+- 保留 LLM request / response 供 prompt 调试使用
+
+### 记录内容
+
+每次分析的 trace 文件包含：
+
+1. `请求输入`
+2. `步骤 1: JD 分析`
+3. `步骤 2: 候选人分析`
+4. `步骤 3: 匹配评分`
+5. `步骤 4: 推荐结论`
+6. `步骤 5: 文案生成`
+7. 如调用 LLM，则在 `步骤 5` 下追加 `LLM 调用`
+8. `最终输出摘要`
 
 ## 返回结构
 

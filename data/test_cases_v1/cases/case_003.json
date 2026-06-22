@@ -1,0 +1,14 @@
+{
+  "id": "case_003",
+  "direction": "真 AI 落地岗，候选人 AI 证据明显不足",
+  "jd_file": "data/test_cases_v1/jd/case_003_jd.md",
+  "resume_file": "data/test_cases_v1/resume/case_003_resume.md",
+  "jd_source_url": "https://maimai.cn/article/detail?efid=OK2jQC-PlbpSnFvtx_hiVA&fid=1863744339",
+  "resume_source_url": "derived_from_public_examples",
+  "candidate_type": "传统PM，AI证据弱",
+  "status": "draft_standardized",
+  "notes": [
+    "用于测试系统是否能识别真AI岗位下的硬伤",
+    "后续需要补不可补偿缺口和 recommendation"
+  ]
+}

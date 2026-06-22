@@ -6,13 +6,11 @@ from app.capabilities import candidate_analysis, jd_analysis, match_scoring, nar
 from app.trace_logger import TraceLogger
 
 
-def run(*, jd_text: str, resume_text: str, user_level: str, goal: str) -> Dict[str, object]:
+def run(*, jd_text: str, resume_text: str) -> Dict[str, object]:
     trace_logger = TraceLogger()
     trace_logger.add_request(
         jd_text=jd_text,
         resume_text=resume_text,
-        user_level=user_level,
-        goal=goal,
     )
 
     jd_result = jd_analysis.run(jd_text)
@@ -45,7 +43,6 @@ def run(*, jd_text: str, resume_text: str, user_level: str, goal: str) -> Dict[s
     match_result = match_scoring.run(
         job_analysis=jd_result["job_analysis"],
         candidate_analysis=candidate_result["candidate_analysis"],
-        user_goal=goal,
     )
     trace_logger.add_step(
         step="步骤 3: 匹配评分",
@@ -53,7 +50,6 @@ def run(*, jd_text: str, resume_text: str, user_level: str, goal: str) -> Dict[s
         input_data={
             "job_analysis": jd_result["job_analysis"],
             "candidate_analysis": candidate_result["candidate_analysis"],
-            "user_goal": goal,
         },
         output_data=match_result,
         key_points={
@@ -66,7 +62,6 @@ def run(*, jd_text: str, resume_text: str, user_level: str, goal: str) -> Dict[s
     recommendation_result = recommendation.run(
         match_result=match_result,
         job_analysis=jd_result["job_analysis"],
-        user_goal=goal,
     )
     trace_logger.add_step(
         step="步骤 4: 推荐结论",
@@ -74,7 +69,6 @@ def run(*, jd_text: str, resume_text: str, user_level: str, goal: str) -> Dict[s
         input_data={
             "match_result": match_result,
             "job_analysis": jd_result["job_analysis"],
-            "user_goal": goal,
         },
         output_data=recommendation_result,
         key_points={
@@ -87,8 +81,6 @@ def run(*, jd_text: str, resume_text: str, user_level: str, goal: str) -> Dict[s
     narration_result = narration.run(
         jd_text=jd_text,
         resume_text=resume_text,
-        user_level=user_level,
-        goal=goal,
         job_analysis=jd_result["job_analysis"],
         candidate_analysis=candidate_result["candidate_analysis"],
         match_result=match_result,
@@ -114,8 +106,6 @@ def run(*, jd_text: str, resume_text: str, user_level: str, goal: str) -> Dict[s
     meta = {
         "version": "v2",
         "trace_id": trace_logger.trace_id,
-        "user_level": user_level,
-        "goal": goal,
         **jd_result["meta"],
         **candidate_result["meta"],
         **narration_result["meta"],

@@ -30,8 +30,8 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 class AnalyzeRequest(BaseModel):
     jd_text: str = Field(min_length=30)
     resume_text: str = Field(min_length=30)
-    user_level: Literal["新人", "转岗PM", "有经验PM", "有AI项目经验"]
-    goal: Literal["求稳", "冲高薪", "转AI", "找长期主线"]
+    user_level: Literal["新人", "转岗PM", "有经验PM", "有AI项目经验"] | None = None
+    goal: Literal["求稳", "冲高薪", "转AI", "找长期主线"] | None = None
 
 
 @app.get("/")
@@ -55,8 +55,6 @@ def demo() -> dict:
             "3 年产品经理经验，负责 B 端协作工具产品规划与需求分析，推动研发、设计、运营协作上线。"
             "做过知识库问答和自动化工作流原型，能使用 API 和 SQL 进行基础分析，曾将流程效率提升 18%。"
         ),
-        "user_level": "转岗PM",
-        "goal": "转AI",
     }
 
 
@@ -65,8 +63,6 @@ def analyze(payload: AnalyzeRequest) -> dict:
     result = analyze_job_fit_v2(
         jd_text=payload.jd_text,
         resume_text=payload.resume_text,
-        user_level=payload.user_level,
-        goal=payload.goal,
     )
     if "llm" not in result.get("meta", {}):
         result["meta"]["llm"] = {

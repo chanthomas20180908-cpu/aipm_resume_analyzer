@@ -20,11 +20,10 @@ class TraceLogger:
         self.trace_id = trace_id or datetime.now().strftime("%Y%m%d_%H%M%S_") + uuid4().hex[:8]
         self.created_at = datetime.now().isoformat(timespec="seconds")
         self._sections: List[str] = []
+        self._pending_llm_block: str | None = None
 
-    def add_request(self, *, jd_text: str, resume_text: str, user_level: str, goal: str) -> None:
+    def add_request(self, *, jd_text: str, resume_text: str) -> None:
         payload = {
-            "user_level": user_level,
-            "goal": goal,
             "jd_text": jd_text,
             "resume_text": resume_text,
         }
@@ -68,6 +67,9 @@ class TraceLogger:
                 "```",
             ]
         )
+        if self._pending_llm_block:
+            blocks.extend(["", self._pending_llm_block])
+            self._pending_llm_block = None
         self._sections.append("\n".join(blocks))
 
     def add_llm(
@@ -86,15 +88,13 @@ class TraceLogger:
             "raw_response": raw_response,
             "parsed_response": parsed_response,
         }
-        self._sections.append(
-            "\n".join(
-                [
-                    "### LLM 调用",
-                    "```json",
-                    _json_block(payload),
-                    "```",
-                ]
-            )
+        self._pending_llm_block = "\n".join(
+            [
+                "### LLM 调用",
+                "```json",
+                _json_block(payload),
+                "```",
+            ]
         )
 
     def add_final(self, *, result: Dict[str, Any]) -> None:

@@ -1,0 +1,15 @@
+{
+  "id": "case_004",
+  "direction": "伪 AI 岗 / 换皮岗",
+  "jd_file": "data/test_cases_v1/jd/case_004_jd.md",
+  "resume_file": "data/test_cases_v1/resume/case_004_resume.md",
+  "jd_source_url": "https://maimai.cn/article/detail?efid=QImEdd_Cn-yWqEijD1zkDQ&fid=911981182&from=single_feed",
+  "resume_source_url": "derived_from_public_examples",
+  "candidate_type": "普通产品经理，体验型产品背景",
+  "status": "draft_standardized",
+  "notes": [
+    "用于测试系统是否能识别岗位本身的AI深度问题",
+    "重点不是候选人，而是岗位画像判断"
+  ]
+}
+

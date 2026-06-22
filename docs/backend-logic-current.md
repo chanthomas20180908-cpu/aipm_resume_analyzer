@@ -1,7 +1,13 @@
 # AI PM 岗位判断工具 - 当前后端逻辑说明
 
-日期：2026-06-18  
-文档目的：记录当前已经实现的后端逻辑，便于后续继续开发、改规则、调 prompt、接更多能力
+日期：2026-06-21  
+文档目的：记录当前已经实现的后端逻辑，便于后续继续开发、改规则、调 prompt、接更多能力。
+
+说明：
+
+- 这份文档描述的是当前真实主链路
+- 当前 `/analyze` 已经切到 v2 workflow
+- 旧版 `app/analyzer.py` 仍保留在仓库里，但不再是主接口入口
 
 ## 1. 当前后端的定位
 
@@ -9,7 +15,7 @@
 
 1. 提供页面入口和静态资源托管
 2. 提供岗位分析接口
-3. 在规则分析结果之上，按配置调用真实 LLM 做文案增强
+3. 按配置在文案生成阶段调用一次真实 LLM 做结果增强
 
 当前版本不是完整平台，也不是多服务架构。  
 重点是先把 `JD + 简历 -> 结构化判断 -> 结果输出` 这条链路跑通。
@@ -17,9 +23,18 @@
 ## 2. 当前目录中的后端相关文件
 
 - [app/main.py](/Users/test/code/aipm_resume_analyzer/app/main.py)
-- [app/analyzer.py](/Users/test/code/aipm_resume_analyzer/app/analyzer.py)
+- [app/workflows/analyze_job_fit.py](/Users/test/code/aipm_resume_analyzer/app/workflows/analyze_job_fit.py)
+- [app/trace_logger.py](/Users/test/code/aipm_resume_analyzer/app/trace_logger.py)
+- [app/capabilities/jd_analysis.py](/Users/test/code/aipm_resume_analyzer/app/capabilities/jd_analysis.py)
+- [app/capabilities/candidate_analysis.py](/Users/test/code/aipm_resume_analyzer/app/capabilities/candidate_analysis.py)
+- [app/capabilities/match_scoring.py](/Users/test/code/aipm_resume_analyzer/app/capabilities/match_scoring.py)
+- [app/capabilities/recommendation.py](/Users/test/code/aipm_resume_analyzer/app/capabilities/recommendation.py)
+- [app/capabilities/narration.py](/Users/test/code/aipm_resume_analyzer/app/capabilities/narration.py)
+- [app/jd_parser.py](/Users/test/code/aipm_resume_analyzer/app/jd_parser.py)
+- [app/resume_parser.py](/Users/test/code/aipm_resume_analyzer/app/resume_parser.py)
 - [app/llm_client.py](/Users/test/code/aipm_resume_analyzer/app/llm_client.py)
 - [app/prompts.py](/Users/test/code/aipm_resume_analyzer/app/prompts.py)
+- [app/analyzer.py](/Users/test/code/aipm_resume_analyzer/app/analyzer.py)
 - [requirements.txt](/Users/test/code/aipm_resume_analyzer/requirements.txt)
 
 ## 3. 当前服务结构
@@ -129,134 +144,138 @@
 当前 `/analyze` 的执行顺序如下：
 
 1. 接收前端输入
-2. 调用规则分析器 `analyze_job_fit`
-3. 先得到一份纯规则结果
-4. 给结果补上默认 `meta.llm`
-5. 判断是否配置了 LLM
-6. 如果未配置，直接返回规则结果
-7. 如果已配置，调用 `enhance_analysis_result`
-8. 如果 LLM 成功返回，使用增强后的结果
-9. 如果 LLM 报错，保留规则结果并在 `meta.llm.error` 中记录错误
+2. 进入 `workflows.analyze_job_fit.run(...)`
+3. 执行 `JD 分析`
+4. 执行 `候选人分析`
+5. 执行 `匹配评分`
+6. 执行 `推荐结论`
+7. 执行 `文案生成`
+8. 如果配置了 LLM，在 `文案生成` 阶段调用一次 `enhance_v2_narration`
+9. 生成 `trace_id` 和单次流程日志
+10. 返回 v2 结构和兼容字段
 
 可以理解为：
 
-`规则判断是主链路，LLM 是增强层，不是决策核心。`
+`规则判断是主链路，LLM 是最后一步的增强层，不是决策核心。`
 
-## 6. 规则分析器逻辑
+## 6. 当前 v2 模块职责
 
-规则分析器在 [app/analyzer.py](/Users/test/code/aipm_resume_analyzer/app/analyzer.py)。
+### 6.1 workflow
 
-### 6.1 输入
+- [app/workflows/analyze_job_fit.py](/Users/test/code/aipm_resume_analyzer/app/workflows/analyze_job_fit.py)
 
-输入 4 项：
+职责：
 
-- `jd_text`
-- `resume_text`
-- `user_level`
-- `goal`
+- 顶层流程编排
+- 聚合最终返回结构
+- 写入 `meta.trace_id`
+- 触发 trace 日志落盘
 
-注意：
+### 6.2 JD 分析
 
-- 当前 `user_level` 只进入结果 `meta`，还没有深入参与评分逻辑
-- 当前 `goal` 会进入权重调整逻辑
+- [app/capabilities/jd_analysis.py](/Users/test/code/aipm_resume_analyzer/app/capabilities/jd_analysis.py)
+- [app/jd_parser.py](/Users/test/code/aipm_resume_analyzer/app/jd_parser.py)
 
-### 6.2 两组关键词字典
+职责：
 
-当前分析器有两套关键词映射：
+- 从原始 JD 文本抽岗位事实
+- 归一化成 `job_analysis`
+- 产出 `meta.jd_extraction` 与 `meta.jd_extraction_meta`
 
-1. `JD_SIGNAL_KEYWORDS`
-2. `RESUME_SIGNAL_KEYWORDS`
+### 6.3 候选人分析
 
-它们分别用于扫描：
+- [app/capabilities/candidate_analysis.py](/Users/test/code/aipm_resume_analyzer/app/capabilities/candidate_analysis.py)
+- [app/resume_parser.py](/Users/test/code/aipm_resume_analyzer/app/resume_parser.py)
 
-- 岗位文本里的岗位信号
-- 简历文本里的候选人信号
+职责：
 
-### 6.3 当前岗位侧维度
+- 从简历文本抽候选人画像和证据
+- 生成 `candidate_analysis`
+- 产出 `meta.resume_extraction`
 
-当前岗位侧维度共 6 个：
+### 6.4 匹配评分
 
-- `ai_density`
-- `user_proximity`
-- `delivery_depth`
-- `data_ownership`
-- `business_link`
-- `coordination_bias`
+- [app/capabilities/match_scoring.py](/Users/test/code/aipm_resume_analyzer/app/capabilities/match_scoring.py)
 
-### 6.4 当前候选人侧维度
+职责：
 
-当前候选人侧维度共 7 个：
+- 做 gate check
+- 计算 7 个维度分
+- 生成 `weighted_match_score`
+- 生成 gaps / highlights / confidence / job_risk_level
 
-- `ai_experience`
-- `product_design`
-- `abstraction`
-- `technical_understanding`
-- `data_analysis`
-- `business_results`
-- `cross_team_push`
+### 6.5 推荐结论
 
-### 6.5 关键词扫描方式
+- [app/capabilities/recommendation.py](/Users/test/code/aipm_resume_analyzer/app/capabilities/recommendation.py)
 
-当前扫描逻辑比较直接：
+职责：
 
-- 把文本转小写
-- 遍历每个维度下的关键词
-- 只要关键词出现在文本里就算命中
-- 每个维度保留最多 4 个命中关键词
-- 分数按命中数量计算
+- 把评分结果转成：
+  - `recommendation`
+  - `recommendation_reason`
+  - `job_risk_level`
+  - `candidate_readiness_level`
 
-当前分数规则：
+### 6.6 文案生成
 
-- 最低分是 `1`
-- 最高分是 `5`
-- 命中越多，分越高
+- [app/capabilities/narration.py](/Users/test/code/aipm_resume_analyzer/app/capabilities/narration.py)
 
-这意味着当前规则仍然是一个 `轻量启发式评分器`，并不是语义理解模型。
+职责：
 
-### 6.6 岗位类型判断
+- 生成：
+  - `summary`
+  - `strengths`
+  - `risks`
+  - `next_actions`
+- 如果 LLM 可用，则只在这里调用一次真实模型
 
-岗位类型由 `_job_type()` 决定，当前规则是：
+### 6.7 Trace 日志
 
-- `ai_density >= 4` 且 `delivery_depth >= 4` -> `技术落地型 AI PM`
-- `coordination_bias >= 4` 且 `ai_density <= 2` -> `协调型 PM`
-- `ai_density <= 2` 且 `coordination_bias >= 3` -> `伪 AI 岗`
-- `business_link >= 4` -> `增长型 AI PM`
-- 其他情况 -> `成长型 AI PM`
+- [app/trace_logger.py](/Users/test/code/aipm_resume_analyzer/app/trace_logger.py)
 
-这是一个硬编码分类规则，后续可以继续优化。
+职责：
 
-### 6.7 匹配度计算
+- 为每次分析生成 `trace_id`
+- 把整条流程落盘到 `logs/{trace_id}.md`
+- 记录每一步的：
+  - 输入
+  - 输出
+  - 关键信息
+- 如果调用了 LLM，则把 request / response 记在 `步骤 5: 文案生成` 下面
+## 7. 当前返回结构
 
-匹配度由 `_score_alignment()` 负责。
+当前返回同时包含两层：
 
-当前做法：
+### 7.1 v2 主结构
 
-1. 建立岗位维度和候选人维度的映射关系
-2. 根据 `goal` 给部分岗位维度加权
-3. 比较岗位要求和候选人对应能力的差值
-4. 同时单独看一次 `technical_understanding` 和 `ai_density` 的技术落差
-5. 输出：
-   - `match_score`
-   - `strengths`
-   - `risks`
+- `job_analysis`
+- `candidate_analysis`
+- `match_result`
+- `recommendation_result`
+- `meta`
 
-当前映射关系：
+### 7.2 兼容字段
 
-- `ai_density -> ai_experience`
-- `user_proximity -> abstraction`
-- `delivery_depth -> product_design`
-- `data_ownership -> data_analysis`
-- `business_link -> business_results`
-- `coordination_bias -> cross_team_push`
+- `recommendation`
+- `match_score`
+- `job_type`
+- `summary`
+- `strengths`
+- `risks`
+- `next_actions`
 
-### 6.8 目标加权
+## 8. 当前 LLM 链路
 
-当前 `goal` 会影响岗位要求权重：
+当前真实 LLM 链路如下：
 
-- `求稳`：提升 `coordination_bias`、`user_proximity`
-- `冲高薪`：提升 `ai_density`、`business_link`
-- `转AI`：提升 `ai_density`、`delivery_depth`
-- `找长期主线`：提升 `delivery_depth`、`data_ownership`
+- 是否启用：
+  - `llm_is_configured()`
+- 调用位置：
+  - `app/capabilities/narration.py`
+- 实际调用函数：
+  - `enhance_v2_narration(...)`
+- 当前每次分析最多只调用一次 LLM
+- 当前不会用 LLM 做 JD 抽取或简历抽取
 
 这不是改最终 recommendation，而是先改变匹配判断中的要求强度。
 

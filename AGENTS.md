@@ -8,8 +8,9 @@
 
 - 后端：`FastAPI`
 - 前端：静态 `HTML + CSS + JS`
-- 判断主链路：规则分析
+- 判断主链路：`workflow + capabilities` 的 v2 架构
 - 文案增强：真实 LLM，可选启用
+- 调试方式：按次落盘的 Markdown 流程日志
 
 当前产品目标不是做完整求职平台，而是先跑通：
 
@@ -20,8 +21,17 @@
 - `app/main.py`
   FastAPI 入口，提供页面和 API。
 
+- `app/workflows/`
+  顶层流程编排，当前 `/analyze` 主链路从这里进入。
+
+- `app/capabilities/`
+  业务能力层，包含 JD 分析、候选人分析、评分、推荐、文案生成。
+
+- `app/trace_logger.py`
+  单次分析流程日志生成器。
+
 - `app/analyzer.py`
-  规则分析器，负责岗位信号扫描、匹配评分、投递建议。
+  旧版规则分析器，当前主接口已不再直接依赖它。
 
 - `app/llm_client.py`
   LLM 调用层，负责模型调用、JSON 解析、结果合并、fallback。
@@ -34,6 +44,9 @@
 
 - `docs/`
   项目文档，包括调研、MVP、后端逻辑、prompt 设计说明。
+
+- `logs/`
+  单次分析日志目录，按 `trace_id` 生成 Markdown 文件。
 
 - `requirements.txt`
   Python 依赖。
@@ -95,12 +108,12 @@ http://127.0.0.1:8000
 
 ## 当前架构约定
 
-- 规则引擎负责最终判断：
+- 规则层负责最终判断：
   - `recommendation`
   - `match_score`
   - `job_type`
 
-- LLM 只负责结果增强：
+- LLM 当前只在 `步骤 5: 文案生成` 调用一次，负责结果增强：
   - `summary`
   - `strengths`
   - `risks`
@@ -111,6 +124,10 @@ http://127.0.0.1:8000
 
 - 提示词不得散落在调用代码里：
   - 统一维护在 `app/prompts.py`
+
+- 每次 `/analyze` 都会生成一份流程日志：
+  - 文件位于 `logs/{trace_id}.md`
+  - 返回里会带 `meta.trace_id` 和 `meta.trace_log_path`
 
 ## 文档入口
 
@@ -127,6 +144,9 @@ http://127.0.0.1:8000
 
 - `docs/backend-logic-current.md`
   当前后端真实实现说明。
+
+- `docs/backend-architecture-v2.md`
+  当前 v2 后端架构实现说明。
 
 - `docs/prompt-design-current.md`
   当前 prompt 设计说明。

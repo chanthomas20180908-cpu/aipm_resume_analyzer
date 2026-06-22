@@ -124,8 +124,6 @@ def enhance_v2_narration(
     *,
     jd_text: str,
     resume_text: str,
-    user_level: str,
-    goal: str,
     job_analysis: Dict[str, Any],
     candidate_analysis: Dict[str, Any],
     match_result: Dict[str, Any],
@@ -136,8 +134,6 @@ def enhance_v2_narration(
     client = _build_client()
     model = os.getenv("OPENAI_MODEL", DEFAULT_MODEL)
     payload = {
-        "user_level": user_level,
-        "goal": goal,
         "jd_text": jd_text,
         "resume_text": resume_text,
         "job_analysis": job_analysis,

@@ -1,0 +1,15 @@
+{
+  "id": "case_001",
+  "direction": "可迁移型案例",
+  "jd_file": "data/test_cases_v1/jd/case_001_jd.md",
+  "resume_file": "data/test_cases_v1/resume/case_001_resume.md",
+  "jd_source_url": "https://maimai.cn/article/detail?efid=TId_v92Ju3Fm_W1kqKZqxw&fid=1864986663",
+  "resume_source_url": "https://www.nowcoder.com/feed/main/detail/daf6f7acfeae484686e1de630a905e4a",
+  "candidate_type": "B端产品/知识管理/弱AI项目，可迁移",
+  "status": "draft_standardized",
+  "notes": [
+    "用于测试系统是否能识别可迁移型候选人",
+    "后续需要补 golden recommendation 和 gaps"
+  ]
+}
+

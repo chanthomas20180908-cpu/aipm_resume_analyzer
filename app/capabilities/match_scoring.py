@@ -14,13 +14,6 @@ DIMENSION_WEIGHTS = {
     "business_fit": 0.12,
 }
 
-GOAL_ADJUSTMENTS = {
-    "求稳": {"risk_sensitivity": 1, "confidence_floor": 1},
-    "冲高薪": {"ai_understanding": 0.2, "delivery_execution": 0.1},
-    "转AI": {"ai_understanding": 0.15, "workflow_design": 0.1},
-    "找长期主线": {"ai_understanding": 0.1, "business_fit": 0.1},
-}
-
 
 def _extract_min_years(text: str) -> int:
     if not text:
@@ -108,10 +101,6 @@ def _score_business_fit(job_analysis: Dict[str, object], candidate_analysis: Dic
     return max(0, min(5, score))
 
 
-def _goal_adjust(score: float, dimension: str, goal: str) -> float:
-    return score + GOAL_ADJUSTMENTS.get(goal, {}).get(dimension, 0)
-
-
 def _build_gate_check(job_analysis: Dict[str, object], candidate_analysis: Dict[str, object]) -> Dict[str, object]:
     failed_reasons: List[str] = []
     non_negotiables = " ".join(job_analysis["job_requirements"].get("non_negotiables", []))
@@ -186,7 +175,7 @@ def _highlights(scores: Dict[str, int], candidate_analysis: Dict[str, object]) -
     return highlights[:3]
 
 
-def run(*, job_analysis: Dict[str, object], candidate_analysis: Dict[str, object], user_goal: str) -> Dict[str, object]:
+def run(*, job_analysis: Dict[str, object], candidate_analysis: Dict[str, object]) -> Dict[str, object]:
     gate = _build_gate_check(job_analysis, candidate_analysis)
     scores = {
         "ai_understanding": _score_ai_understanding(job_analysis, candidate_analysis),
@@ -199,7 +188,7 @@ def run(*, job_analysis: Dict[str, object], candidate_analysis: Dict[str, object
     }
     weighted_score = 0.0
     for dimension, value in scores.items():
-        adjusted = max(0.0, min(5.0, _goal_adjust(float(value), dimension, user_goal)))
+        adjusted = max(0.0, min(5.0, float(value)))
         weighted_score += adjusted / 5 * 100 * DIMENSION_WEIGHTS[dimension]
     confidence = _confidence(job_analysis, candidate_analysis, gate)
     non_compensatory_gaps, compensatory_gaps = _gaps(job_analysis, candidate_analysis, scores, gate)

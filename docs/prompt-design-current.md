@@ -1,5 +1,6 @@
 # 当前 Prompt 设计说明
 
+文档日期：2026-06-21  
 文档目的：记录当前已经实现的提示词设计意图、职责边界、输入输出约束和已知失败模式，便于后续继续调 prompt，而不是每次从代码里反推。
 
 关联代码：
@@ -11,13 +12,13 @@
 
 当前 prompt 只服务一个任务：
 
-- 在规则分析结果基础上，生成更自然、更具体的中文结果文案
+- 在 v2 规则分析结果基础上，生成更自然、更具体的中文结果文案
 
 它不负责：
 
 - 判断最终 `recommendation`
-- 重算 `match_score`
-- 改写 `job_type`
+- 重算 `weighted_match_score`
+- 改写 `job_profile` / `job_type`
 - 从零做岗位匹配决策
 
 结论：
@@ -43,7 +44,7 @@
 
 ## 3. 当前 Prompt 结构
 
-当前只有一组 prompt，分为两部分：
+当前真实生效的是 `v2 narrator prompt`，分为两部分：
 
 1. `system prompt`
 2. `user prompt`
@@ -52,13 +53,13 @@
 
 ### 3.1 System Prompt 的职责
 
-当前 `LLM_RESULT_SYSTEM_PROMPT` 的作用是给模型划硬边界。
+当前 `V2_NARRATOR_SYSTEM_PROMPT` 的作用是给模型划硬边界。
 
 它主要约束 5 件事：
 
 - 模型身份：`AI PM 求职判断助手`
-- 数据边界：只能基于 `JD + 简历 + 规则结果`
-- 决策边界：不能改 `recommendation / match_score / job_type`
+- 数据边界：只能基于 `JD + 简历 + 岗位分析 + 候选人分析 + 匹配结果 + recommendation`
+- 决策边界：不能改 `recommendation / weighted_match_score / job_type`
 - 事实边界：不能编造经历
 - 格式边界：必须只输出 JSON
 
@@ -71,7 +72,7 @@
 
 ### 3.2 User Prompt 的职责
 
-当前 `build_llm_result_user_prompt(payload)` 的作用是把任务、输出结构和输入数据一起喂给模型。
+当前 `build_v2_narrator_user_prompt(payload)` 的作用是把任务、输出结构和输入数据一起喂给模型。
 
 它主要包含 3 层信息：
 
@@ -99,17 +100,10 @@
   "goal": "转AI",
   "jd_text": "原始JD文本",
   "resume_text": "原始简历文本",
-  "rule_result": {
-    "recommendation": "可投",
-    "match_score": 68,
-    "job_type": "真实AI PM",
-    "job_signals": {},
-    "candidate_signals": {},
-    "strengths": [],
-    "risks": [],
-    "next_actions": [],
-    "summary": "规则生成的一句总结"
-  }
+  "job_analysis": {},
+  "candidate_analysis": {},
+  "match_result": {},
+  "recommendation_result": {}
 }
 ```
 
@@ -121,7 +115,7 @@
 - `resume_text`
   让模型引用候选人真实经历，而不是只盯着规则结果
 
-- `rule_result`
+- `job_analysis / candidate_analysis / match_result / recommendation_result`
   给模型一个已经定好的判断框架，避免它重新做决策
 
 - `user_level` 和 `goal`
@@ -145,7 +139,7 @@
 当前刻意不让模型返回：
 
 - `recommendation`
-- `match_score`
+- `weighted_match_score`
 - `job_type`
 - 新增的自定义字段
 
@@ -165,7 +159,7 @@
 所以 prompt 明确写死：
 
 - 不能改 `recommendation`
-- 不能改 `match_score`
+- 不能改 `weighted_match_score`
 - 不能改 `job_type`
 
 ### 6.2 防模型编造证据
@@ -225,7 +219,7 @@
 
 这版 prompt 能跑，但还比较粗。
 
-当前主要问题有 6 个：
+当前主要问题有 7 个：
 
 - `没有强制证据引用格式`
   现在只是“尽量引用”，不是硬约束，所以模型仍可能写泛泛总结。
@@ -244,6 +238,9 @@
 
 - `没有拆成抽取和生成两步`
   当前模型同时看原始文本和规则结果，未来复杂度上来后可能会互相干扰。
+
+- `日志里会保留完整 request / response`
+  当前这是为了调试方便，但后续如果进入外部环境，需要补脱敏或日志开关。
 
 ## 8. 当前失败模式
 
