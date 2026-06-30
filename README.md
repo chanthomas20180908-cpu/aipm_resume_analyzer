@@ -143,6 +143,49 @@ http://127.0.0.1:8000
 - `trace_id`
 - `trace_log_path`
 
+## 测试集
+
+测试集用于验证系统判断准确性，采用 MECE 双轴分类：
+
+- 横轴：岗位质量（真 AI 岗 / 伪 AI 岗）
+- 纵轴：匹配类型（强匹配 / 可迁移 / 有短板 / 硬伤）
+
+当前 8 个 case 覆盖 6 个主格子 + 1 个跨域变体：
+
+| Case | 方向 | 预期结论 |
+|------|------|----------|
+| 002 | 真 AI + 强匹配 | 冲 |
+| 008 | 真 AI + 强匹配（跨域） | 可投 |
+| 001 | 真 AI + 可迁移 | 可投 |
+| 005 | 真 AI + 有短板 | 谨慎 |
+| 003 | 真 AI + 硬伤 | 避开 |
+| 009 | 伪 AI + 强匹配 | 谨慎 |
+| 010 | 伪 AI + 可迁移 | 避开 |
+| 004 | 伪 AI + 有短板 | 避开 |
+
+测试集文档：
+
+- [`data/test_cases_v1/README.md`](data/test_cases_v1/README.md) — 测试集目录索引（按 A1-D2 矩阵组织）
+- [docs/testset-directions-v2.md](docs/testset-directions-v2.md) — 分类体系设计
+- [docs/golden-label-schema-v1.md](docs/golden-label-schema-v1.md) — 金标标注方案
+- `data/test_cases_v1/golden/` — 8 个 case 的金标数据
+- [docs/testset-case-mapping-v2.md](docs/testset-case-mapping-v2.md) — 历史归档：V2 矩阵设计过程
+
+### A1 离线逻辑测试
+
+标准 `A1` 样本 `case_002` 提供了一个离线逻辑评测入口，不经过 `/analyze`，因此不会在仓库 `logs/` 下生成 trace：
+
+```bash
+python3 scripts/run_a1_logic_test.py
+```
+
+默认输出：
+
+- `/tmp/a1_case_002_actual.json`
+- `/tmp/a1_case_002_eval.md`
+
+详细说明见 [docs/a1-logic-test.md](docs/a1-logic-test.md)。
+
 ## 主要文档
 
 - [AGENTS.md](/Users/test/code/aipm_resume_analyzer/AGENTS.md)

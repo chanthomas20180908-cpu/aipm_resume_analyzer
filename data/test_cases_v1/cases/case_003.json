@@ -1,14 +1,21 @@
 {
   "id": "case_003",
-  "direction": "真 AI 落地岗，候选人 AI 证据明显不足",
+  "direction": "真 AI 岗 + 硬伤",
   "jd_file": "data/test_cases_v1/jd/case_003_jd.md",
   "resume_file": "data/test_cases_v1/resume/case_003_resume.md",
-  "jd_source_url": "https://maimai.cn/article/detail?efid=OK2jQC-PlbpSnFvtx_hiVA&fid=1863744339",
+  "jd_source_url": "https://www.zhipin.com/zhaopin/d80362d64832e5860nRy39q6EA~~/",
   "resume_source_url": "derived_from_public_examples",
   "candidate_type": "传统PM，AI证据弱",
   "status": "draft_standardized",
   "notes": [
+    "已替换为新的正式岗位JD，避免与case_002重复",
     "用于测试系统是否能识别真AI岗位下的硬伤",
     "后续需要补不可补偿缺口和 recommendation"
-  ]
+  ],
+  "cell": "D1",
+  "golden_label_file": "data/test_cases_v1/golden/case_003_golden.json",
+  "golden_label": {
+    "recommendation": "避开",
+    "match_score": 45
+  }
 }

@@ -1,0 +1,26 @@
+{
+  "id": "case_010",
+  "direction": "伪 AI 岗 + 可迁移",
+  "cell": "B2",
+  "jd_file": "data/test_cases_v1/jd/case_004_jd.md",
+  "resume_file": "data/test_cases_v1/resume/case_001_resume.md",
+  "jd_source_url": "https://maimai.cn/article/detail?efid=QImEdd_Cn-yWqEijD1zkDQ&fid=911981182&from=single_feed",
+  "resume_source_url": "https://mackenzieraeclark.github.io/Resume/",
+  "candidate_type": "可迁移型产品经理，偏UX/用户研究/路线图",
+  "status": "draft_standardized",
+  "notes": [
+    "【B2】伪 AI 岗 + 可迁移：验证系统对双向一般场景的判断",
+    "JD 复用 case_004（图灵机器人虚拟机器人），岗位 AI 深度不足，实际偏传统体验产品",
+    "Resume 复用 case_001（Mackenzie Clark），有产品经验但无 AI 直接经验，可迁移到 AI 应用型岗位",
+    "核心测试点：系统是否同时识别 pseudo_ai_risk 和候选人短板，给出避开（而非可投或谨慎）",
+    "与 case_001（B1）形成对照：同一候选人遇到真 AI 岗 vs 伪 AI 岗，系统结论是否不同",
+    "与 case_009（A2）形成对照：同一 JD 配强匹配 vs 可迁移简历，系统结论是否随候选人质量单调变化",
+    "与 case_004（C2）形成对照：同一 JD 配可迁移 vs 普通 PM 简历，系统是否都给出避开",
+    "后续需要补 golden recommendation 和 gaps"
+  ],
+  "golden_label_file": "data/test_cases_v1/golden/case_010_golden.json",
+  "golden_label": {
+    "recommendation": "避开",
+    "match_score": 55
+  }
+}

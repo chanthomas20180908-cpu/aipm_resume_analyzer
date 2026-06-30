@@ -1,14 +1,21 @@
 {
   "id": "case_008",
-  "direction": "行业 / 场景高度相关岗",
+  "direction": "真 AI 岗 + 强匹配但跨行业",
   "jd_file": "data/test_cases_v1/jd/case_008_jd.md",
   "resume_file": "data/test_cases_v1/resume/case_008_resume.md",
   "jd_source_url": "https://maimai.cn/article/detail?efid=7KMU8PrTQHSzU-GwgnKL_Q&fid=1855494418",
-  "resume_source_url": "derived_from_public_examples",
-  "candidate_type": "跨行业PM，技术理解中等但行业不贴合",
+  "resume_source_url": "https://mgjillanimughal.github.io/Jillani%20Resume.pdf",
+  "candidate_type": "AI技术和落地能力强，但行业/场景不贴合",
   "status": "draft_standardized",
   "notes": [
+    "已替换为公开PDF简历来源，提升简历真实性",
     "用于测试 system 对 business_fit 和 technical_depth 的复合判断",
     "后续应重点标注 non-compensatory gaps"
-  ]
+  ],
+  "cell": "A1-跨域",
+  "golden_label_file": "data/test_cases_v1/golden/case_008_golden.json",
+  "golden_label": {
+    "recommendation": "可投",
+    "match_score": 78
+  }
 }

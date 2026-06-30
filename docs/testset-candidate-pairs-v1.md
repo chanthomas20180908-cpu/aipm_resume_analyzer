@@ -36,7 +36,7 @@
 
 ### 候选简历来源
 
-- [求实习｜技术型 AI 产品经理求带走](https://maimai.cn/article/detail?efid=m3UOCbTJg39zJkQj4rUebA&fid=1915120977)
+- [技术型 AI 产品经理求职样例（多智能体 / 评测体系 / 上线经验）](https://maimai.cn/article/detail?efid=m3UOCbTJg39zJkQj4rUebA&fid=1915120977)
 - [简历推荐：12 位 AI 产品经理](https://blog.csdn.net/pa2elx78qajtadh/article/details/102829897)
 
 ### 候选人类型
@@ -51,16 +51,16 @@
 
 ### 首选 JD
 
-- [AI 产品经理实习生（大模型）招聘岗位 JD](https://maimai.cn/article/detail?efid=OK2jQC-PlbpSnFvtx_hiVA&fid=1863744339)
+- [AI 统一能力平台 / 知识库 / 智能问答 / Agent 编排 / 工作流自动化](https://www.zhipin.com/zhaopin/d80362d64832e5860nRy39q6EA~~/)
 
 ### 选择理由
 
 - 岗位明确要求：
-  - 检索增强生成
-  - 工具调用
-  - 智能体配置
-  - 工作流编排
-- 是标准的“真 AI 落地岗”，适合验证系统能否识别硬伤
+  - 平台能力建设
+  - 知识库问答
+  - Agent 编排
+  - 工作流自动化
+- 是正式 AI 平台岗位，适合验证系统能否识别硬伤
 
 ### 候选简历来源
 
@@ -79,14 +79,14 @@
 
 ### 首选 JD
 
-- [AI 产品经理实习生招聘-创业公司-北京](https://maimai.cn/article/detail?efid=TId_v92Ju3Fm_W1kqKZqxw&fid=1864986663)
+- [电商 AI 产品经理（售前、售后、质检、营销转化全链路）](https://www.zhipin.com/job_detail/e5947f65ede28ce503V_39S_F1dY.html)
 
 ### 选择理由
 
 - 岗位偏 AI 应用型，不是纯研究型
 - 需要：
-  - API 调用
-  - 用户体验优化
+  - 售前导购 / 售后服务 / 质检提效 / 营销转化
+  - 智能问答 / 智能推荐 / 自动化工作流
   - 数据分析
   - 产品迭代
 - 适合验证系统是否能识别“有相近能力，可投但不满配”
@@ -167,7 +167,7 @@
 
 ### 首选 JD
 
-- [AI 智能体产品经理实习生招聘（蓝标传媒）](https://www.zhipin.com/job_detail/98ccb047149bf7191HJ83di6GFJU.html)
+- [电商 AI 产品经理（偏智能体 / 业务应用）](https://www.zhipin.com/job_detail/e5947f65ede28ce503V_39S_F1dY.html)
 
 ### 选择理由
 
@@ -242,7 +242,7 @@
 ### 候选简历来源
 
 - [简历推荐：12 位 AI 产品经理](https://blog.csdn.net/pa2elx78qajtadh/article/details/102829897)
-- [求实习｜技术型 AI 产品经理求带走](https://maimai.cn/article/detail?efid=m3UOCbTJg39zJkQj4rUebA&fid=1915120977)
+- [技术型 AI 产品经理求职样例（多智能体 / 评测体系 / 上线经验）](https://maimai.cn/article/detail?efid=m3UOCbTJg39zJkQj4rUebA&fid=1915120977)
 
 ### 候选人类型
 
@@ -259,4 +259,3 @@
   - `样本标准化`
   - `case schema`
   - `rubric`
-

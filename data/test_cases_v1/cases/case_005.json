@@ -1,15 +1,25 @@
 {
   "id": "case_005",
-  "direction": "强交付、弱技术理解",
-  "jd_file": "data/test_cases_v1/jd/case_005_jd.md",
+  "direction": "真 AI 岗 + 有短板（技术理解不足）",
+  "cell": "C1",
+  "jd_file": "data/test_cases_v1/jd/case_002_jd.md",
   "resume_file": "data/test_cases_v1/resume/case_005_resume.md",
-  "jd_source_url": "https://www.zhipin.com/zhaopin/d80362d64832e5860nRy39q6EA~~/",
+  "jd_source_url": "https://maimai.cn/article/detail?efid=vzNpuqgAiHou-YBUNB-Hjg&fid=1876761620",
   "resume_source_url": "derived_from_public_examples",
   "candidate_type": "强交付PM，技术理解证据弱",
   "status": "draft_standardized",
   "notes": [
-    "用于测试系统是否会把强执行误判为足够匹配AI平台岗",
-    "后续应重点标注 technical gap"
-  ]
+    "【C1】真 AI 岗 + 有短板：验证系统对可补偿短板的判断",
+    "JD 复用 case_002（保险 Agent 落地），真 AI 岗，要求 Agent/评测/模型理解/技术深度",
+    "Resume 为匿名改写：5 年 PM 经验，强交付/推进，但无模型/API/Prompt/评测实践证据",
+    "核心测试点：系统是否把'强执行'误判为'足够懂 AI'？是否给出'谨慎'而非'可投'？",
+    "与 case_002（A1）形成对照：同一 JD 配强匹配 vs 有短板简历，结论是否从'冲'降到'谨慎'",
+    "与 case_003（D1）形成对照：真 AI 岗 + 有短板 vs 硬伤，系统是否区分可补偿与不可补偿",
+    "后续需要补 golden recommendation 和 gaps"
+  ],
+  "golden_label_file": "data/test_cases_v1/golden/case_005_golden.json",
+  "golden_label": {
+    "recommendation": "谨慎",
+    "match_score": 62
+  }
 }
-

@@ -1,0 +1,44 @@
+{
+  "id": "case_002",
+  "cell": "A1",
+  "direction": "真 AI 岗 + 强匹配",
+  "golden_label": {
+    "recommendation": "冲",
+    "dimension_scores": {
+      "ai_understanding": 5,
+      "scenario_abstraction": 4,
+      "workflow_design": 4,
+      "delivery_execution": 5,
+      "data_metrics": 4,
+      "stakeholder_push": 4,
+      "business_fit": 3
+    },
+    "weighted_match_score": 85,
+    "gate_check_result": {
+      "passed": true,
+      "failed_reasons": []
+    },
+    "non_compensatory_gaps": [],
+    "compensatory_gaps": [
+      "business_fit 一般：保险场景 vs 通用 AI，但有客服/质检场景可迁移"
+    ],
+    "confidence": {
+      "level": "high",
+      "score": 85
+    },
+    "job_risk_level": "low"
+  },
+  "annotation": {
+    "annotator": "human",
+    "date": "2026-06-30",
+    "version": "v1",
+    "notes": [
+      "Shivika 有完整 Agent 落地经验：客服生成式 AI、情绪链式提示、评估框架",
+      "技术深度：Prompt Engineering、RAG、向量检索、Chain-of-Thought、对抗式 Prompt",
+      "交付证据：POC → 生产规模部署、91% 准确率、跨美欧印多地团队协作",
+      "指标：91% 准确率、95% ML 准确率、37% 优先级判断提升",
+      "唯一弱项：business_fit（保险领域经验未明确），但客服/质检场景可部分覆盖",
+      "结论：冲（能力全面覆盖 JD 要求，技术深度超出岗位要求）"
+    ]
+  }
+}

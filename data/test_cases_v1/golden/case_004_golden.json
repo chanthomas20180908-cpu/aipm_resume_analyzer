@@ -1,0 +1,44 @@
+{
+  "id": "case_004",
+  "cell": "C2",
+  "direction": "伪 AI 岗 + 有短板",
+  "golden_label": {
+    "recommendation": "避开",
+    "dimension_scores": {
+      "ai_understanding": 1,
+      "scenario_abstraction": 2,
+      "workflow_design": 2,
+      "delivery_execution": 3,
+      "data_metrics": 1,
+      "stakeholder_push": 3,
+      "business_fit": 2
+    },
+    "weighted_match_score": 48,
+    "gate_check_result": {
+      "passed": true,
+      "failed_reasons": []
+    },
+    "non_compensatory_gaps": [],
+    "compensatory_gaps": [
+      "岗位本身 AI 深度不足，候选人能力一般，双向不值得"
+    ],
+    "confidence": {
+      "level": "medium",
+      "score": 55
+    },
+    "job_risk_level": "high"
+  },
+  "annotation": {
+    "annotator": "human",
+    "date": "2026-06-30",
+    "version": "v1",
+    "notes": [
+      "JD 分析：标题写 AI 产品经理（虚拟机器人），实际职责偏基础模块设计/美术效果/验收测试/反馈跟进",
+      "JD 技术要求：无模型/Agent/评测要求，只要求'对虚拟机器人有好奇心'、'视觉审美'",
+      "候选人：4 年体验型 PM，无 AI 技术背景，无模型/Agent 经验",
+      "岗位风险：pseudo_ai_risk = high（AI 名头强，实际传统体验产品）",
+      "候选人短板：无 AI 技术，无复杂项目交付，无指标结果",
+      "结论：避开（岗位无成长价值 + 候选人无亮点，不值得投入时间）"
+    ]
+  }
+}

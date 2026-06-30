@@ -1,0 +1,45 @@
+{
+  "id": "case_009",
+  "cell": "A2",
+  "direction": "伪 AI 岗 + 强匹配",
+  "golden_label": {
+    "recommendation": "谨慎",
+    "dimension_scores": {
+      "ai_understanding": 5,
+      "scenario_abstraction": 4,
+      "workflow_design": 3,
+      "delivery_execution": 4,
+      "data_metrics": 4,
+      "stakeholder_push": 4,
+      "business_fit": 3
+    },
+    "weighted_match_score": 78,
+    "gate_check_result": {
+      "passed": true,
+      "failed_reasons": []
+    },
+    "non_compensatory_gaps": [],
+    "compensatory_gaps": [
+      "岗位 AI 深度不足，候选人能力溢出，存在大材小用风险"
+    ],
+    "confidence": {
+      "level": "medium",
+      "score": 65
+    },
+    "job_risk_level": "high"
+  },
+  "annotation": {
+    "annotator": "human",
+    "date": "2026-06-30",
+    "version": "v1",
+    "notes": [
+      "JD：图灵机器人虚拟机器人（复用 case_004 JD），实际偏传统体验产品",
+      "Resume：Shivika（复用 case_002），强 AI 候选人，能力远超岗位要求",
+      "核心测试：系统是否被候选人质量带偏，忽略岗位风险？",
+      "岗位风险：pseudo_ai_risk = high，职责是基础模块设计/美术效果/验收测试",
+      "候选人能力：Agent 落地/Prompt 工程/评测体系/生成式 AI，远超岗位要求",
+      "结论：谨慎（岗位风险上限 recommendation，不是'冲'也不是'可投'）",
+      "与 case_002 对照：同一候选人，真 AI 岗 → 伪 AI 岗，结论从'冲'降到'谨慎'"
+    ]
+  }
+}

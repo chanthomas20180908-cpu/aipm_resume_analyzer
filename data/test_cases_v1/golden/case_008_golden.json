@@ -1,0 +1,46 @@
+{
+  "id": "case_008",
+  "cell": "A1-跨域",
+  "direction": "真 AI 岗 + 强匹配但跨行业",
+  "golden_label": {
+    "recommendation": "可投",
+    "dimension_scores": {
+      "ai_understanding": 5,
+      "scenario_abstraction": 4,
+      "workflow_design": 4,
+      "delivery_execution": 4,
+      "data_metrics": 4,
+      "stakeholder_push": 3,
+      "business_fit": 2
+    },
+    "weighted_match_score": 78,
+    "gate_check_result": {
+      "passed": true,
+      "failed_reasons": []
+    },
+    "non_compensatory_gaps": [],
+    "compensatory_gaps": [
+      "business_fit 弱：无金融/海外业务背景，JD 要求金融业务知识",
+      "stakeholder_push 证据不足：简历无跨文化/跨国团队协作证据"
+    ],
+    "confidence": {
+      "level": "medium",
+      "score": 70
+    },
+    "job_risk_level": "low"
+  },
+  "annotation": {
+    "annotator": "human",
+    "date": "2026-06-30",
+    "version": "v1",
+    "notes": [
+      "Jillani：资深数据科学家/ML 工程师，生成式 AI/LLM/自主 AI 系统",
+      "技术深度：RAG、多智能体（LangChain/LangGraph）、LLMOps、MLOps、向量数据库",
+      "交付证据：企业级 RAG 流水线、Health Guard AI、对话式 AI 聊天机器人、Agentic AI 系统",
+      "指标：销售预测准确率提升 80-90%、销售增长 80%、线上订单增长 200%、提前 3 个月交付",
+      "JD 要求：金融 AI、海外业务、英文论文阅读、与算法共同定义问题",
+      "弱项：business_fit（无金融背景）、海外业务经验未明确、stakeholder_push 偏技术而非产品",
+      "结论：可投（技术极强可部分补偿行业 gap，但不足以'冲'因行业不匹配）"
+    ]
+  }
+}

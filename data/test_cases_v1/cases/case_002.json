@@ -1,15 +1,21 @@
 {
   "id": "case_002",
-  "direction": "真 AI 落地岗，候选人明显匹配",
+  "direction": "真 AI 岗 + 强匹配",
   "jd_file": "data/test_cases_v1/jd/case_002_jd.md",
   "resume_file": "data/test_cases_v1/resume/case_002_resume.md",
   "jd_source_url": "https://maimai.cn/article/detail?efid=vzNpuqgAiHou-YBUNB-Hjg&fid=1876761620",
-  "resume_source_url": "https://maimai.cn/article/detail?efid=m3UOCbTJg39zJkQj4rUebA&fid=1915120977",
-  "candidate_type": "技术型AI产品经理，强评测和落地能力",
+  "resume_source_url": "https://sbisen.github.io/files/Resume_Shivika.pdf",
+  "candidate_type": "技术型AI产品/AI应用落地候选人，明显匹配",
   "status": "draft_standardized",
   "notes": [
+    "已替换为公开PDF简历来源，提升简历真实性",
     "用于测试系统是否能给出冲或可投",
     "后续需要补 hard gate、success metrics 和 golden recommendation"
-  ]
+  ],
+  "cell": "A1",
+  "golden_label_file": "data/test_cases_v1/golden/case_002_golden.json",
+  "golden_label": {
+    "recommendation": "冲",
+    "match_score": 85
+  }
 }
-

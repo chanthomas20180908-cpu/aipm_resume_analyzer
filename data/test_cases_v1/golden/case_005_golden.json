@@ -1,0 +1,47 @@
+{
+  "id": "case_005",
+  "cell": "C1",
+  "direction": "真 AI 岗 + 有短板（技术理解不足）",
+  "golden_label": {
+    "recommendation": "谨慎",
+    "dimension_scores": {
+      "ai_understanding": 2,
+      "scenario_abstraction": 3,
+      "workflow_design": 3,
+      "delivery_execution": 4,
+      "data_metrics": 2,
+      "stakeholder_push": 4,
+      "business_fit": 3
+    },
+    "weighted_match_score": 62,
+    "gate_check_result": {
+      "passed": true,
+      "failed_reasons": []
+    },
+    "non_compensatory_gaps": [],
+    "compensatory_gaps": [
+      "ai_understanding 弱：无模型/Prompt/评测/Agent 编排证据，只有流程管理",
+      "data_metrics 弱：无量化结果，只有'完成上线'等过程描述"
+    ],
+    "confidence": {
+      "level": "medium",
+      "score": 60
+    },
+    "job_risk_level": "low"
+  },
+  "annotation": {
+    "annotator": "human",
+    "date": "2026-06-30",
+    "version": "v1",
+    "notes": [
+      "JD：保险 Agent 落地，要求 Agent/评测/模型理解/技术深度（复用 case_002 JD）",
+      "候选人：5 年 PM，强交付/推进/跨部门协同，但技术理解停留在对接层面",
+      "自承：'技术理解更多来自项目配合，不是自己主导 AI 能力设计'",
+      "项目：企业流程中台（无模型/API/Prompt/评测），知识库（偏分类非 AI）",
+      "优势：delivery_execution 强、stakeholder_push 强",
+      "短板：ai_understanding 弱、data_metrics 弱",
+      "结论：谨慎（可补偿缺口，但技术短板明显，不足以'可投'）",
+      "与 case_002 对照：同一 JD，强匹配 → 有短板，结论从'冲'降到'谨慎'"
+    ]
+  }
+}

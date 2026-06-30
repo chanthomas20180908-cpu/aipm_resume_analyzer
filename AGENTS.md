@@ -151,6 +151,18 @@ http://127.0.0.1:8000
 - `docs/prompt-design-current.md`
   当前 prompt 设计说明。
 
+## 测试集约定
+
+- 测试集位于 `data/test_cases_v1/`，采用 MECE 双轴分类（真 AI/伪 AI × 强匹配/可迁移/有短板/硬伤）。
+- 当前 8 个 case：001-005, 008-010（006/007 已删除，009/010 为新建）。
+- 金标数据独立存储在 `data/test_cases_v1/golden/`（与输入分离）。
+- 测试集相关文档：
+  - `data/test_cases_v1/README.md` — 测试集目录索引（按 A1-D2 矩阵组织，含文件路径总览）
+  - `docs/testset-directions-v2.md` — 分类体系
+  - `docs/golden-label-schema-v1.md` — 金标方案
+  - `docs/testset-case-mapping-v2.md` — 已归档，仅作历史参考
+- 旧版 `docs/testset-sourcing-directions-v1.md` 已归档，仅作历史参考。
+
 ## 协作约束
 
 - 禁止任何 Git 操作。

@@ -1,0 +1,46 @@
+{
+  "id": "case_010",
+  "cell": "B2",
+  "direction": "伪 AI 岗 + 可迁移",
+  "golden_label": {
+    "recommendation": "避开",
+    "dimension_scores": {
+      "ai_understanding": 2,
+      "scenario_abstraction": 3,
+      "workflow_design": 2,
+      "delivery_execution": 3,
+      "data_metrics": 2,
+      "stakeholder_push": 3,
+      "business_fit": 2
+    },
+    "weighted_match_score": 55,
+    "gate_check_result": {
+      "passed": true,
+      "failed_reasons": []
+    },
+    "non_compensatory_gaps": [],
+    "compensatory_gaps": [
+      "综合短板多，岗位本身无价值，不值得投入"
+    ],
+    "confidence": {
+      "level": "medium",
+      "score": 60
+    },
+    "job_risk_level": "high"
+  },
+  "annotation": {
+    "annotator": "human",
+    "date": "2026-06-30",
+    "version": "v1",
+    "notes": [
+      "JD：图灵机器人虚拟机器人（复用 case_004 JD），伪 AI 岗",
+      "Resume：Mackenzie（复用 case_001），可迁移但非强匹配",
+      "核心测试：系统对'双向一般'场景的判断",
+      "岗位：AI 名头传统实质，无成长价值",
+      "候选人：有产品经验但无 AI 直接经验，可迁移但非亮点",
+      "结论：避开（不是'可投'——岗不行；不是'谨慎'——人也不行）",
+      "与 case_001 对照：同一候选人，真 AI 岗 → 伪 AI 岗，结论从'可投'降到'避开'",
+      "与 case_009 对照：同一 JD，强匹配 → 可迁移，结论从'谨慎'降到'避开'"
+    ]
+  }
+}

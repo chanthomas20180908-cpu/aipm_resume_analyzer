@@ -1,15 +1,22 @@
 {
   "id": "case_001",
-  "direction": "可迁移型案例",
+  "direction": "真 AI 岗 + 可迁移",
   "jd_file": "data/test_cases_v1/jd/case_001_jd.md",
   "resume_file": "data/test_cases_v1/resume/case_001_resume.md",
-  "jd_source_url": "https://maimai.cn/article/detail?efid=TId_v92Ju3Fm_W1kqKZqxw&fid=1864986663",
-  "resume_source_url": "https://www.nowcoder.com/feed/main/detail/daf6f7acfeae484686e1de630a905e4a",
-  "candidate_type": "B端产品/知识管理/弱AI项目，可迁移",
+  "jd_source_url": "https://www.zhipin.com/job_detail/e5947f65ede28ce503V_39S_F1dY.html",
+  "resume_source_url": "https://mackenzieraeclark.github.io/Resume/",
+  "candidate_type": "真实产品经理来源，偏UX/用户研究/路线图，可迁移",
   "status": "draft_standardized",
   "notes": [
+    "已替换为正式岗位JD",
+    "已替换为公开在线简历来源，提升简历真实性",
     "用于测试系统是否能识别可迁移型候选人",
     "后续需要补 golden recommendation 和 gaps"
-  ]
+  ],
+  "cell": "B1",
+  "golden_label_file": "data/test_cases_v1/golden/case_001_golden.json",
+  "golden_label": {
+    "recommendation": "可投",
+    "match_score": 68
+  }
 }
-

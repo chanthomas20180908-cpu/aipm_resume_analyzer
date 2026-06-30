@@ -1,0 +1,44 @@
+{
+  "id": "case_001",
+  "cell": "B1",
+  "direction": "真 AI 岗 + 可迁移",
+  "golden_label": {
+    "recommendation": "可投",
+    "dimension_scores": {
+      "ai_understanding": 2,
+      "scenario_abstraction": 4,
+      "workflow_design": 3,
+      "delivery_execution": 3,
+      "data_metrics": 2,
+      "stakeholder_push": 3,
+      "business_fit": 3
+    },
+    "weighted_match_score": 68,
+    "gate_check_result": {
+      "passed": true,
+      "failed_reasons": []
+    },
+    "non_compensatory_gaps": [],
+    "compensatory_gaps": [
+      "ai_understanding 弱：无 AI 直接经验，但有 UX/用户研究可迁移",
+      "data_metrics 弱：简历无量化指标，但产品方法论可迁移"
+    ],
+    "confidence": {
+      "level": "medium",
+      "score": 65
+    },
+    "job_risk_level": "low"
+  },
+  "annotation": {
+    "annotator": "human",
+    "date": "2026-06-30",
+    "version": "v1",
+    "notes": [
+      "Mackenzie 无 AI 经验，但有 3 年 PM 经验（UX/用户研究/路线图）",
+      "电商 AI PM 偏应用型，强调业务场景和落地推进，非纯技术岗",
+      "可迁移能力：用户研究 → 电商用户场景理解；路线图 → AI 产品规划",
+      "短板：无模型/Prompt/Agent 理解，无量化指标，需入职后补",
+      "结论：可投（不是冲，因为 AI 硬技能缺失；不是避开，因为可迁移）"
+    ]
+  }
+}

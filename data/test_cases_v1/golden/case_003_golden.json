@@ -1,0 +1,50 @@
+{
+  "id": "case_003",
+  "cell": "D1",
+  "direction": "真 AI 岗 + 硬伤",
+  "golden_label": {
+    "recommendation": "避开",
+    "dimension_scores": {
+      "ai_understanding": 1,
+      "scenario_abstraction": 2,
+      "workflow_design": 2,
+      "delivery_execution": 3,
+      "data_metrics": 1,
+      "stakeholder_push": 3,
+      "business_fit": 2
+    },
+    "weighted_match_score": 45,
+    "gate_check_result": {
+      "passed": false,
+      "failed_reasons": [
+        "ai_delivery_gate: JD 明确要求 AI 落地经验，简历无 AI 项目证据",
+        "technical_gate: JD 要求模型/Agent/评测理解，简历无技术证据"
+      ]
+    },
+    "non_compensatory_gaps": [
+      "无 AI 产品落地经验",
+      "无模型/Agent/评测/工作流编排技术理解"
+    ],
+    "compensatory_gaps": [
+      "交付能力尚可，但不足以补偿 AI 硬门槛"
+    ],
+    "confidence": {
+      "level": "medium",
+      "score": 55
+    },
+    "job_risk_level": "low"
+  },
+  "annotation": {
+    "annotator": "human",
+    "date": "2026-06-30",
+    "version": "v1",
+    "notes": [
+      "传统 B 端 PM，经验集中在流程管理/需求分析/原型设计",
+      "项目经历：知识库升级（偏分类/搜索/权限，非 AI 能力）、流程自动化（偏配置，非智能体）",
+      "技能：无模型、Prompt、API、评测或智能体项目经历",
+      "JD 要求：AI 统一能力平台、Agent 编排、工作流自动化、模型理解",
+      "硬门槛缺失：AI 落地经验为 must_have，简历完全无证据",
+      "结论：避开（不可补偿缺口，即使交付能力强也无法弥补 AI 技术缺失）"
+    ]
+  }
+}

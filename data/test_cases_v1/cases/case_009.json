@@ -1,0 +1,25 @@
+{
+  "id": "case_009",
+  "direction": "伪 AI 岗 + 强匹配",
+  "cell": "A2",
+  "jd_file": "data/test_cases_v1/jd/case_004_jd.md",
+  "resume_file": "data/test_cases_v1/resume/case_002_resume.md",
+  "jd_source_url": "https://maimai.cn/article/detail?efid=QImEdd_Cn-yWqEijD1zkDQ&fid=911981182&from=single_feed",
+  "resume_source_url": "https://sbisen.github.io/files/Resume_Shivika.pdf",
+  "candidate_type": "技术型AI产品，强匹配候选人",
+  "status": "draft_standardized",
+  "notes": [
+    "【A2】伪 AI 岗 + 强匹配：验证系统是否优先识别岗位风险，不被候选人质量带偏",
+    "JD 复用 case_004（图灵机器人虚拟机器人），岗位 AI 深度不足，实际偏传统体验产品",
+    "Resume 复用 case_002（Shivika），有 Agent 落地、评测体系、Prompt 工程、生成式 AI 完整经验",
+    "核心测试点：pseudo_ai_risk 是否被识别为 high，recommendation 是否被上限设为谨慎（而非冲）",
+    "与 case_002（A1）形成对照：同一候选人遇到真 AI 岗 vs 伪 AI 岗，系统结论是否不同",
+    "与 case_010（B2）形成对照：同一 JD 配强匹配 vs 可迁移简历，系统结论是否随候选人质量单调变化",
+    "后续需要补 golden recommendation 和 gaps"
+  ],
+  "golden_label_file": "data/test_cases_v1/golden/case_009_golden.json",
+  "golden_label": {
+    "recommendation": "谨慎",
+    "match_score": 78
+  }
+}
