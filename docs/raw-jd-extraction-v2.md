@@ -1,5 +1,8 @@
 # 原始 JD 抽取规范 V2
 
+> **实现状态更新（2026-06-30）**>
+> 当前 `app/capabilities/jd_analysis.py` 默认优先走 LLM 抽取（`llm_client.extract_jd_with_llm`），失败或未配置 key 时 fallback 到本文档描述的规则抽取。> 本文档现在主要描述规则 fallback 的抽取规范，并包含 LLM 抽取新增字段（`industry_domain`、`business_orientation`、`role_perspective`、`enterprise_type`）。
+
 ## 核心假设
 
 - 真实产品输入是用户粘贴的一段原始 JD 文本。
@@ -89,6 +92,9 @@
       "company_size": "",
       "ai_maturity": "",
       "delivery_mode": "",
+      "business_orientation": "",
+      "role_perspective": "",
+      "enterprise_type": "",
       "location": "",
       "salary_range": ""
     },
@@ -288,6 +294,65 @@
 - `general`
 
 证据不足时使用 `general`。
+
+### B1. `industry_domain`
+
+#### 作用
+
+识别岗位所在的垂直行业。
+
+#### 允许值
+
+- `insurance`
+- `finance`
+- `healthcare`
+- `education`
+- `retail`
+- `e_commerce`
+- `manufacturing`
+- `logistics`
+- `automotive`
+- `real_estate`
+- `enterprise_service`
+- `general`
+
+证据不足时使用 `general`。
+
+### B2. `business_orientation`
+
+#### 作用
+
+判断岗位偏业务还是偏技术。
+
+#### 允许值
+
+- `business-heavy`
+- `tech-heavy`
+- `hybrid`
+
+### B3. `role_perspective`
+
+#### 作用
+
+判断 JD 招的是 PM 视角还是工程师视角。
+
+#### 允许值
+
+- `pm`
+- `engineer`
+- `hybrid`
+
+### B4. `enterprise_type`
+
+#### 作用
+
+判断企业类型是传统行业还是 AI 原生。
+
+#### 允许值
+
+- `traditional_enterprise`
+- `ai_native`
+- `hybrid`
 
 ### C. `ai_maturity`
 

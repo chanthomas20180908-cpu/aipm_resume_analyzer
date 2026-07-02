@@ -3,14 +3,15 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Literal
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from app.llm_client import llm_is_configured
+from app.llm_client import LLMEnhancementError, llm_is_configured
 from app.workflows.analyze_job_fit import run as analyze_job_fit_v2
+from app.workflows.analyze_job_fit_v3 import run as analyze_job_fit_v3
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -73,3 +74,19 @@ def analyze(payload: AnalyzeRequest) -> dict:
     if not llm_is_configured():
         result["meta"]["llm"]["used"] = False
     return result
+
+
+@app.post("/analyze/v3")
+def analyze_v3(payload: AnalyzeRequest) -> dict:
+    if not llm_is_configured():
+        raise HTTPException(
+            status_code=503,
+            detail="v3 workflow requires DASHSCOPE_API_KEY or OPENAI_API_KEY.",
+        )
+    try:
+        return analyze_job_fit_v3(
+            jd_text=payload.jd_text,
+            resume_text=payload.resume_text,
+        )
+    except LLMEnhancementError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc

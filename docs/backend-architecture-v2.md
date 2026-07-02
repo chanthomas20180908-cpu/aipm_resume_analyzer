@@ -1,5 +1,7 @@
 # 后端架构实现 V2
 
+> 2026-07-01 更新：项目已新增 v3 LLM-Native 工作流（`/analyze/v3`），对应 `app/workflows/analyze_job_fit_v3.py`。v2 工作流（`/analyze`）继续保留。本文档仍只描述 v2 架构，v3 架构见 [docs/backend-logic-current.md](docs/backend-logic-current.md)。
+
 ## 核心假设
 
 - 当前后端已经从单文件分析器切到 `workflow + capabilities` 的 v2 架构。
@@ -28,6 +30,7 @@ app/
   resume_parser.py
   llm_client.py
   prompts.py
+  prompts_v3.py        # v3 工作流 prompt
   analyzer.py
   capabilities/
     jd_analysis.py
@@ -35,9 +38,14 @@ app/
     match_scoring.py
     recommendation.py
     narration.py
+    jd_analysis_v3.py        # v3 JD 分析
+    candidate_analysis_v3.py # v3 候选人分析
   workflows/
     analyze_job_fit.py
+    analyze_job_fit_v3.py    # v3 三步工作流
 ```
+
+说明：`prompts_v3.py`、`*_v3.py`、`analyze_job_fit_v3.py` 服务 `/analyze/v3`，v2 架构本身不依赖它们。
 
 ## 分层说明
 
@@ -115,15 +123,15 @@ app/
 
 - [main.py](/Users/test/code/aipm_resume_analyzer/app/main.py)
 
-调用顺序如下：
+v2 调用顺序如下：
 
 ```text
 /analyze
   -> workflows.analyze_job_fit.run(...)
     -> capabilities.jd_analysis.run(...)
-      -> jd_parser.build_jd_analysis(...)
+      -> llm_client.extract_jd_with_llm(...) 或 jd_parser.build_jd_analysis(...) fallback
     -> capabilities.candidate_analysis.run(...)
-      -> resume_parser.build_candidate_analysis(...)
+      -> llm_client.extract_candidate_with_llm(...) 或 resume_parser.build_candidate_analysis(...) fallback
     -> capabilities.match_scoring.run(...)
     -> capabilities.recommendation.run(...)
     -> capabilities.narration.run(...)
@@ -131,7 +139,23 @@ app/
   -> 返回最终结果
 ```
 
-当前实现里，每次 `/analyze` 还会同时创建一个 `TraceLogger`，把整条链路落盘到：
+新增 `/analyze/v3` 为 LLM-Native 三步工作流：
+
+```text
+/analyze/v3
+  -> workflows.analyze_job_fit_v3.run(...)
+    -> capabilities.jd_analysis_v3.run(...)
+      -> llm_client.extract_jd_v3(...)
+    -> capabilities.candidate_analysis_v3.run(...)
+      -> llm_client.extract_candidate_v3(...，带 job_analysis)
+    -> llm_client.synthesize_final_v3(...)
+      -> 直接输出 recommendation / match_score / summary / strengths / risks / next_actions
+  -> 返回最终结果
+```
+
+前端首页默认请求 `/analyze/v3`；当环境未配置 LLM key 导致 v3 返回 503 时，自动 fallback 到 `/analyze`（v2）。因此 `/analyze` 继续作为兜底链路保留。
+
+当前实现里，每次 `/analyze` 或 `/analyze/v3` 都会同时创建一个 `TraceLogger`，把整条链路落盘到：
 
 - `logs/{trace_id}.md`
 
@@ -156,22 +180,26 @@ app/
 
 #### 依赖
 
-- `jd_parser.build_jd_analysis`
+- 优先：`llm_client.extract_jd_with_llm`
+- Fallback：`jd_parser.build_jd_analysis`
 
-### `candidate_analysis.run(resume_text)`
+### `candidate_analysis.run(resume_text, job_analysis=None)`
 
 #### 输入
 
 - 原始简历文本
+- （可选）`job_analysis`，用于判断角色错配
 
 #### 输出
 
 - `candidate_analysis`
 - `meta.resume_extraction`
+- `meta.resume_extraction_meta`
 
 #### 依赖
 
-- `resume_parser.build_candidate_analysis`
+- 优先：`llm_client.extract_candidate_with_llm`
+- Fallback：`resume_parser.build_candidate_analysis`
 
 ### `match_scoring.run(job_analysis, candidate_analysis, user_goal)`
 
@@ -256,9 +284,10 @@ recommendation 基于：
 
 注意：
 
-- 当前每次分析最多只调用一次 LLM
-- 这个调用只发生在 `步骤 5: 文案生成`
-- LLM 调用信息会作为 `步骤 5` 的子块写入 trace 日志，而不是独立插在其他步骤之间
+- 当前 Step 1/2 默认也调用 LLM 做结构化抽取
+- Step 5 仍只调用一次 LLM 做文案增强
+- LLM 调用信息会作为 `步骤 5` 的子块写入 trace 日志
+- Step 1/2 的 LLM 调用状态记录在对应 capability 返回的 `meta` 中
 
 ## Trace 日志
 
@@ -342,17 +371,22 @@ recommendation 基于：
 
 ### 尚未完成
 
-- `job_family`、`business_domain` 等内部枚举的中文映射
 - v2 字段驱动的前端展示重构
-- JD extractor / resume extractor 的 LLM 版本
-- 更完整的规则校准
-- 真实评测集驱动的阈值调优
+- v2 LLM 抽取质量持续校准
+- 更完整的 v2 规则校准
+- 真实评测集驱动的 v2 阈值调优
+
+说明：`job_family`、`business_domain` 等内部枚举的中文映射已在 v3 工作流中通过“英文 key + 中文枚举值”方式解决，v2 不再扩展。
 
 ## 当前限制
 
-### 1. Parser 仍是规则版
+### 1. Parser 默认由 LLM 抽取，规则版作为 fallback
 
-当前 JD / 简历解析仍是启发式规则抽取，不是 LLM 抽取版。
+当前 `app/jd_parser.py` 和 `app/resume_parser.py` 仍保留，但不再优先调用：
+
+- 环境配置了 LLM key 时，优先走 `llm_client.extract_jd_with_llm` / `extract_candidate_with_llm`
+- LLM 未配置、超时或返回异常时，自动回退到规则 parser
+- 规则 parser 继续作为兜底，保证服务不中断
 
 ### 2. narrator 已切 v2，但文案仍偏保守
 

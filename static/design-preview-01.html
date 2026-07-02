@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>劈瓜 - 三步交互预览 01</title>
+    <link rel="stylesheet" href="design-preview-01.css" />
+  </head>
+  <body>
+    <main class="preview-page" id="preview-page" data-state="input">
+      <div class="corner-brand" aria-hidden="true">劈瓜</div>
+
+      <header class="topbar" aria-label="页面说明">
+        <div class="brand-lockup">
+          <div class="brand-row">
+            <img
+              class="hero-mark"
+              src="/static/assets/pigua/frame-01.png"
+              alt="拿着刀和西瓜的卡皮巴拉"
+            />
+            <h1>劈瓜</h1>
+          </div>
+          <p class="hero-subtitle">给AI产品经理的求职分析工具</p>
+        </div>
+      </header>
+
+      <section class="material-summary" id="material-summary" hidden>
+        <div>
+          <span class="summary-dot" aria-hidden="true"></span>
+          <strong>瓜和刀都收好了</strong>
+          <p>职位瓜和你的劈瓜刀已保留在本页，仅用于这次交互预览。</p>
+        </div>
+        <div class="summary-actions">
+          <button class="quiet-button" type="button" id="toggle-materials">展开查看</button>
+          <button class="quiet-button" type="button" id="reset-button">重新输入</button>
+        </div>
+      </section>
+
+      <section class="material-detail" id="material-detail" hidden>
+        <article>
+          <span>这只职位瓜</span>
+          <p id="jd-preview"></p>
+        </article>
+        <article>
+          <span>你的劈瓜刀</span>
+          <p id="resume-preview"></p>
+        </article>
+      </section>
+
+      <section class="view input-view" id="input-view" aria-labelledby="input-title">
+        <form class="input-card" id="preview-form">
+          <div class="card-head">
+            <p class="section-label">Step 01 / 放瓜</p>
+            <h2 id="input-title">把瓜放上来</h2>
+          </div>
+
+          <div class="input-grid">
+            <label class="field">
+              <span>这只职位瓜</span>
+              <textarea
+                id="jd-text"
+                rows="7"
+                placeholder="贴 JD：职责、要求、加分项、那些写得很玄乎的 AI 字眼都放进来。"
+              ></textarea>
+            </label>
+
+            <label class="field">
+              <span>你的劈瓜刀</span>
+              <textarea
+                id="resume-text"
+                rows="7"
+                placeholder="贴简历：项目、经历、成果、你觉得能撑住这个岗位的证据。"
+              ></textarea>
+            </label>
+          </div>
+
+          <p class="form-error" id="form-error" role="alert" hidden>瓜和刀都得有，不然劈不了。</p>
+          <button class="primary-button" type="submit">劈开看看</button>
+        </form>
+      </section>
+
+      <section class="view loading-view" id="loading-view" aria-labelledby="loading-title" hidden>
+        <div class="loading-card">
+          <div class="loading-hero">
+            <div class="loading-mascot" aria-label="卡皮巴拉正在劈瓜">
+              <img
+                id="mascot-frame"
+                src="/static/assets/pigua/frame-01.png"
+                alt="卡皮巴拉正在劈开一只职位瓜"
+              />
+              <div class="mascot-placeholder" id="mascot-placeholder" hidden>
+                <strong>卡皮巴拉劈瓜.gif</strong>
+                <span>把多模态帧图放到 static/assets/pigua/ 后会自动播放。</span>
+              </div>
+            </div>
+          </div>
+          <div class="card-head centered">
+            <p class="section-label">Step 02 / 劈瓜</p>
+            <h2 id="loading-title">正在劈瓜</h2>
+          </div>
+
+          <div class="loading-progress" aria-label="分析步骤">
+            <div class="loading-progress-track" aria-hidden="true">
+              <div class="loading-progress-fill"></div>
+            </div>
+            <ol class="loading-progress-steps">
+              <li>
+                <span class="progress-dot" aria-hidden="true"></span>
+                <strong>看瓜皮</strong>
+                <em>岗位标题有没有虚标</em>
+              </li>
+              <li>
+                <span class="progress-dot" aria-hidden="true"></span>
+                <strong>掂重量</strong>
+                <em>JD 要求是不是离谱</em>
+              </li>
+              <li>
+                <span class="progress-dot" aria-hidden="true"></span>
+                <strong>找吸铁石</strong>
+                <em>识别伪 AI 和外包味</em>
+              </li>
+              <li>
+                <span class="progress-dot" aria-hidden="true"></span>
+                <strong>看瓜瓤</strong>
+                <em>匹配你的真实经历</em>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <section class="view result-view" id="result-view" aria-labelledby="result-title" hidden>
+        <div class="result-output-card">
+          <div class="result-output-head">
+            <p class="section-label">Step 03 / 看瓤</p>
+            <h2 id="result-title">验瓜结果</h2>
+          </div>
+          <article class="result-output" aria-label="分析结果">
+            <p>
+              半熟，可投，但别裸投。
+            </p>
+            <p>
+              这只职位瓜不是生瓜蛋子，岗位更偏真 AI 应用型 PM，不是纯算法或模型训练岗位。
+              你有用户场景拆解、需求优先级和跨团队推进的相近经历，可以投。
+            </p>
+            <p>
+              但现在的问题是：你的简历表达还没有把 AI 产品判断、能力边界、效果评估和落地证据劈出来。
+              部分经历看起来像项目协同记录，不像产品负责人做出的关键判断。
+            </p>
+            <p>
+              投之前先补刀：把最相关的一段经历改成“业务问题 -> AI 方案 -> 指标变化 -> 你的判断”。
+              再准备两个反问：岗位 AI 能力成熟度，以及 PM 对效果指标的 ownership。
+            </p>
+          </article>
+          <button class="primary-button result-action" type="button" id="result-reset-button">换个瓜再劈</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="design-preview-01.js"></script>
+  </body>
+</html>

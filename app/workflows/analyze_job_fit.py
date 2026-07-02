@@ -13,7 +13,7 @@ def run(*, jd_text: str, resume_text: str) -> Dict[str, object]:
         resume_text=resume_text,
     )
 
-    jd_result = jd_analysis.run(jd_text)
+    jd_result = jd_analysis.run(jd_text, trace_logger=trace_logger)
     trace_logger.add_step(
         step="步骤 1: JD 分析",
         purpose="把原始 JD 文本转成岗位画像、要求和风险信号。",
@@ -26,7 +26,9 @@ def run(*, jd_text: str, resume_text: str) -> Dict[str, object]:
         },
     )
 
-    candidate_result = candidate_analysis.run(resume_text)
+    candidate_result = candidate_analysis.run(
+        resume_text, job_analysis=jd_result["job_analysis"], trace_logger=trace_logger
+    )
     trace_logger.add_step(
         step="步骤 2: 候选人分析",
         purpose="把简历文本转成候选人画像、证据和缺口。",
@@ -37,6 +39,13 @@ def run(*, jd_text: str, resume_text: str) -> Dict[str, object]:
             "ai_experience_level": candidate_result["candidate_analysis"]["candidate_profile"].get(
                 "ai_experience_level"
             ),
+            "candidate_role_orientation": candidate_result["candidate_analysis"]["candidate_profile"].get(
+                "candidate_role_orientation"
+            ),
+            "role_mismatch_flag": candidate_result["candidate_analysis"].get("role_mismatch_flag"),
+            "llm_used": candidate_result["meta"]
+            .get("resume_extraction_meta", {})
+            .get("llm_used"),
         },
     )
 

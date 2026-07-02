@@ -12,9 +12,15 @@
 
 - 后端：`FastAPI`
 - 前端：静态 `HTML + CSS + JS`
-- 主链路：`workflow + capabilities` 的 v2 架构
-- 决策方式：规则判断主导
-- LLM 作用：只参与 `文案生成`，不直接改最终 recommendation
+- 主链路：
+  - v2：`workflow + capabilities` 架构，规则判断主导最终 recommendation，LLM 负责 Step 1/2 结构化抽取和 Step 5 文案增强。
+  - v3（新增）：三步 LLM-Native 工作流，JD 分析、候选人分析、终局判断均走 LLM，不再经过规则评分层。
+- 决策方式：
+  - v2：规则判断主导最终 recommendation。
+  - v3：大模型直接输出 recommendation、match_score 和文案。
+- LLM 作用：
+  - v2：`JD/简历结构化抽取` + `文案生成`，均可在未配置或异常时 fallback 到规则版。
+  - v3：JD/简历结构化抽取 + 终局判断，全链路 LLM，无 key 时返回 503。
 - 调试能力：按次生成完整流程日志
 
 ## 目录结构
@@ -27,6 +33,7 @@ app/
   resume_parser.py
   llm_client.py
   prompts.py
+  prompts_v3.py
   analyzer.py
   capabilities/
   workflows/
@@ -42,11 +49,13 @@ AGENTS.md
 说明：
 
 - `app/main.py`
-  FastAPI 入口。
+  FastAPI 入口，提供 `/analyze` 和 `/analyze/v3`。
 - `app/workflows/`
-  顶层流程编排。
+  顶层流程编排，包含 v2 (`analyze_job_fit.py`) 和 v3 (`analyze_job_fit_v3.py`)。
 - `app/capabilities/`
-  JD 分析、候选人分析、评分、推荐、文案生成。
+  JD 分析、候选人分析、评分、推荐、文案生成；v3 对应模块带 `_v3` 后缀。
+- `app/prompts.py` / `app/prompts_v3.py`
+  分别维护 v2 和 v3 的提示词。
 - `app/trace_logger.py`
   单次分析日志生成器。
 - `static/`
@@ -98,7 +107,11 @@ http://127.0.0.1:8000
 - `GET /demo`
   返回示例输入。
 - `POST /analyze`
-  核心分析接口。
+  核心分析接口（v2 工作流，保留旧前端兼容）。
+- `POST /analyze/v3`
+  新版分析接口（v3 LLM-Native 三步工作流，必须配置 LLM key）。
+
+前端首页默认调用 `/analyze/v3`；当环境未配置 LLM key 导致 v3 返回 503 时，页面会自动 fallback 到 `/analyze`（v2）。
 
 ## 当前分析主链路
 
@@ -106,28 +119,53 @@ http://127.0.0.1:8000
 /analyze
   -> workflows.analyze_job_fit.run(...)
     -> jd_analysis
+      -> 优先 LLM 抽取（extract_jd_with_llm），失败 fallback 到 jd_parser
     -> candidate_analysis
+      -> 优先 LLM 抽取（extract_candidate_with_llm，带 job_analysis），失败 fallback 到 resume_parser
     -> match_scoring
     -> recommendation
     -> narration
-      -> 如已配置 LLM，则调用一次 enhance_v2_narration(...)
+      -> 如已配置 LLM，则调用 enhance_v2_narration(...)
   -> 返回结果
 ```
 
 关键点：
 
-- 当前每次分析最多只调用一次 LLM
-- LLM 只在 `步骤 5: 文案生成` 参与
+- 当前每次分析最多调用 3 次 LLM（Step 1、Step 2、Step 5）
+- LLM 在 Step 1/2 负责结构化抽取，在 Step 5 负责文案增强
+- Step 1/2 失败时自动 fallback 到规则版 parser，不影响接口可用性
 - recommendation 仍由规则层决定
+
+## v3 分析主链路
+
+```text
+/analyze/v3
+  -> workflows.analyze_job_fit_v3.run(...)
+    -> jd_analysis_v3
+      -> llm_client.extract_jd_v3(...)
+    -> candidate_analysis_v3
+      -> llm_client.extract_candidate_v3(...，带 job_analysis)
+    -> llm_client.synthesize_final_v3(...)
+      -> 直接输出 recommendation / match_score / summary / strengths / risks / next_actions
+  -> 返回结果
+```
+
+关键点：
+
+- 三步均调用 LLM，无 LLM key 时返回 503。
+- Step 1/2 输出英文 key + 中文枚举值/内容，可直接阅读。
+- Step 1 增加 `implied_requirements` 和 `jd_core_judgment`。
+- Step 2 增加 `candidate_match_summary`。
+- 终局判断由 LLM 直接完成，不经过规则评分层。
 
 ## 日志
 
-每次 `/analyze` 都会生成一份流程日志：
+每次 `/analyze` 或 `/analyze/v3` 都会生成一份流程日志：
 
 - 目录：`logs/`
 - 文件名：`{trace_id}.md`
 
-日志内容包括：
+v2 日志内容包括：
 
 - 请求输入
 - `步骤 1: JD 分析`
@@ -135,7 +173,15 @@ http://127.0.0.1:8000
 - `步骤 3: 匹配评分`
 - `步骤 4: 推荐结论`
 - `步骤 5: 文案生成`
-- 如走 LLM，会在 `步骤 5` 下记录 `LLM 调用`
+- 如走 LLM，会在对应步骤下记录 `LLM 调用`
+- 最终输出摘要
+
+v3 日志内容包括：
+
+- 请求输入
+- `步骤 1: JD 分析`（含 LLM 调用）
+- `步骤 2: 候选人分析`（含 LLM 调用）
+- `步骤 3: 终局判断`（含 LLM 调用）
 - 最终输出摘要
 
 接口返回的 `meta` 中包含：

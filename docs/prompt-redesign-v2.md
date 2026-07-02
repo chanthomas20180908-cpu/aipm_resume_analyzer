@@ -1,5 +1,11 @@
 # Prompt 重构设计 V2
 
+> **实现状态更新**（2026-07-01）
+>
+> - V2 prompt（`app/prompts.py`）保持服务 `/analyze`（v2 工作流）。
+> - 新增 V3 prompt（`app/prompts_v3.py`）服务 `/analyze/v3`：英文 key + 中文枚举值、更短、增加 `implied_requirements` / `jd_core_judgment` / `candidate_match_summary`，并由 Step 3 LLM 直接输出终局推荐。
+> - 具体实现细节以代码为准。
+
 ## 核心假设
 
 - V2 prompt 的目标不是“让模型更聪明”，而是让模型在明确边界内稳定工作。
@@ -122,10 +128,11 @@
 ### 输入
 
 - `resume_text`
+- `job_analysis` 关键字段（用于角色错配判断，如 `role_perspective`、`business_orientation`、`industry_domain`）
 
 ### 输出
 
-对应 `candidate_analysis` 的抽取基础：
+对应 `candidate_analysis` 的抽取基础，并额外输出 `role_mismatch_flag`：
 
 ```json
 {
@@ -343,18 +350,55 @@ rule outputs
 
 如果暂时不拆多个文件，至少在 `app/prompts.py` 中按功能分组。
 
-## 八、实现优先级
+## 八、实现状态
 
-建议按这个顺序推进：
+三类 prompt 均已落地，当前进入测试集校准阶段：
 
-1. 先新增 `JD extractor`
-2. 再新增 `resume extractor`
-3. 最后重写 `narrator`
+1. `JD extractor` — 已实现
+2. `Resume extractor` — 已实现
+3. `Narrator` — 已实现
 
-原因：
+后续重点：
 
-- 抽取层先稳定，规则才能稳定
-- narrator 是最后一层，依赖前面结果结构
+- 用 case_002 等样本验证 `industry_domain`、`business_orientation`、`role_perspective`、`candidate_role_orientation`、`role_mismatch_flag` 的稳定性
+- 持续迭代 prompt 细节，减少 LLM 字段漂移
+
+## 九、V3 Prompt 设计补充
+
+2026-07-01 新增 `/analyze/v3` 后，prompt 设计发生以下变化：
+
+### 9.1 为什么需要 V3 prompt
+
+- V2 prompt 输出太长，枚举值是英文 snake_case，不适合中文产品场景。
+- V2 的 Step 1/2 输出只是“原文重排”，没有专家解读，无法直接给用户看。
+- V2 为了兼容规则评分层，必须把中文枚举值翻译回英文，增加了无意义复杂度。
+
+### 9.2 V3 prompt 的核心变化
+
+1. **英文 key + 中文值**
+   - 保留英文 key（便于代码维护），但枚举值和文本内容全部要求中文。
+   - 不再做中文→英文 value 映射。
+
+2. **Schema 瘦身**
+   - JD 删除 `job_title`、`company_stage`、`company_size`、`location`、`salary_range`、`preferred` 等对用户价值低的字段。
+   - 候选人删除 `product_background`，但保留 `product_evidence` / `business_evidence` 和对应缺口。
+   - 所有数组字段上限降到 3 条（缺口类降到 1 条）。
+
+3. **增加专家判断字段**
+   - JD 增加 `implied_requirements`：把“精通某 Agent 产品”这类表述背后的潜台词显式写出来。
+   - JD 增加 `jd_core_judgment`：一句话总结岗位本质。
+   - 候选人增加 `candidate_match_summary`：一句话总结匹配判断。
+
+4. **三步终局**
+   - V3 只有三类 prompt：`JD_V3`、`Candidate_V3`、`Final_V3`。
+   - `Final_V3` 直接基于 Step 1/2 的结构化结果输出 `recommendation`、`match_score`、`summary`、`strengths`、`risks`、`next_actions`，不再经过规则评分层。
+
+### 9.3 V3 prompt 文件
+
+- `app/prompts_v3.py`
+  - `JD_V3_SYSTEM_PROMPT` / `build_jd_v3_user_prompt(...)`
+  - `CANDIDATE_V3_SYSTEM_PROMPT` / `build_candidate_v3_user_prompt(...)`
+  - `FINAL_V3_SYSTEM_PROMPT` / `build_final_v3_user_prompt(...)`
 
 ## 非目标
 

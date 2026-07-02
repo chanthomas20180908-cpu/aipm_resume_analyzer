@@ -1,5 +1,7 @@
 # 后端 Schema V2
 
+> 2026-07-01 更新：项目已新增 v3 工作流（`/analyze/v3`），使用不同的 schema 设计：英文 key + 中文枚举值，Step 3 由 LLM 直接输出 recommendation 和文案，不经过规则评分层。v2 schema 仍服务 `/analyze`。本文档主体描述 v2 schema，v3 差异见文末补充。
+
 ## 核心假设
 
 - V2 schema 同时服务 3 层：规则引擎、LLM 增强层、前端结果页。
@@ -37,10 +39,14 @@
     "job_title": "",
     "job_family": "",
     "business_domain": "",
+    "industry_domain": "",
     "company_stage": "",
     "company_size": "",
     "ai_maturity": "",
     "delivery_mode": "",
+    "business_orientation": "",
+    "role_perspective": "",
+    "enterprise_type": "",
     "location": "",
     "salary_range": ""
   },
@@ -65,13 +71,12 @@
 
 - `job_family`：岗位类型，例如内部平台、企业协作、AI 工作流、机器人交互、增长型 AI PM 等。
 - `business_domain`：业务领域，例如营销、协作、教育、机器人、知识管理等。
+- `industry_domain`：垂直行业，例如保险、金融、医疗、教育、零售、电商等。
 - `ai_maturity`：AI 成熟度，反映岗位到底是概念包装、应用落地还是深度交付。
 - `delivery_mode`：交付模式，例如 `0_to_1`、`1_to_10`、平台型、场景型。
-- `must_have`：JD 中明确表达的必要条件。
-- `preferred`：JD 中表达为优先、加分项、方向性优势的条件。
-- `core_competencies`：从 JD 中归一化出来的核心能力维度。
-- `success_metrics`：岗位成功标准，可能来自显式指标，也可能来自高置信度推断。
-- `non_negotiables`：后续匹配中视为不可补偿的硬要求。
+- `business_orientation`：岗位偏业务还是偏技术：`business-heavy`、`tech-heavy`、`hybrid`。
+- `role_perspective`：JD 招的是 PM 还是工程师视角：`pm`、`engineer`、`hybrid`。
+- `enterprise_type`：企业类型：`traditional_enterprise`、`ai_native`、`hybrid`。
 
 #### 为什么需要这一层
 
@@ -95,29 +100,39 @@
     "experience_years": "",
     "domain_experience": [],
     "ai_experience_level": "",
-    "product_background": ""
+    "product_background": "",
+    "candidate_role_orientation": ""
   },
   "candidate_evidence": {
     "project_evidence": [],
     "delivery_evidence": [],
     "metrics_evidence": [],
     "technical_evidence": [],
-    "collaboration_evidence": []
+    "collaboration_evidence": [],
+    "product_evidence": [],
+    "business_evidence": []
   },
   "missing_evidence": {
     "ai_landing_gap": [],
     "metric_gap": [],
     "domain_gap": [],
-    "technical_gap": []
-  }
+    "technical_gap": [],
+    "product_gap": [],
+    "business_gap": []
+  },
+  "role_mismatch_flag": false
 }
 ```
 
 #### 字段说明
 
 - `candidate_profile`：候选人的背景信息。
+- `candidate_role_orientation`：候选人本质是 PM、工程师、研究员还是无法判断：`pm`、`engineer`、`researcher`、`ambiguous`。
 - `candidate_evidence`：简历中真正能支撑判断的证据，如项目、交付、指标、技术协作、跨团队推动。
+  - `product_evidence`：产品经理视角证据（需求分析、roadmap、用户研究等）。
+  - `business_evidence`：业务/商业视角证据（商业化、ROI、定价、市场调研等）。
 - `missing_evidence`：当前证据缺口，强调的是“缺证明”而不是武断地说“没有能力”。
+- `role_mismatch_flag`：当 JD 明确要求 PM 角色，而候选人明显是 engineer/researcher 时为 `true`。
 
 #### 为什么需要这一层
 
@@ -236,9 +251,13 @@
 
 ### LLM 可参与的字段
 
-LLM 只能在受约束范围内参与：
+LLM 默认负责 Step 1/2 结构化抽取，失败时 fallback 到规则版：
 
-- `candidate_analysis` 的抽取辅助
+- `job_analysis`：由 `extract_jd_with_llm` 生成
+- `candidate_analysis`：由 `extract_candidate_with_llm` 生成
+
+LLM 在 Step 5 负责文案增强：
+
 - `recommendation_result.summary`
 - `recommendation_result.strengths`
 - `recommendation_result.risks`
@@ -296,6 +315,28 @@ V2 相比 V1，新增了中间层：
 3. 用 `match_result` 替代当前较扁平的打分逻辑
 4. 把现有结果页输出迁移到 `recommendation_result`
 5. 按新的职责边界重构 prompt
+
+## v3 Schema 差异补充
+
+2026-07-01 新增的 `/analyze/v3` 与 v2 schema 有以下差异：
+
+1. **枚举值使用中文**
+   - 例如 `business_orientation` 取值为 `"业务重"`、`"技术重"`、`"混合"`，而非 v2 的 `"business-heavy"` 等。
+   - `core_competencies` 使用 `"AI理解"`、`"场景抽象"` 等中文标签。
+
+2. **新增专家判断字段**
+   - `job_requirements.implied_requirements`：JD 原文要求的潜台词解读。
+   - `jd_core_judgment`：对岗位本质的一句话判断。
+   - `candidate_match_summary`：对候选人匹配情况的一句话判断。
+
+3. **删除对用户价值较低的字段**
+   - v3 的 `job_profile` 不再包含 `job_title`、`company_stage`、`company_size`、`location`、`salary_range`。
+   - v3 的 `job_requirements` 不再包含 `preferred`。
+
+4. **终局输出结构不同**
+   - v3 不再返回 `match_result` 和 `recommendation_result`。
+   - v3 直接返回顶层字段：`recommendation`、`match_score`、`summary`、`strengths`、`risks`、`next_actions`。
+   - v3 的 `recommendation` 和 `match_score` 由 Step 3 LLM 直接生成，不经过规则层。
 
 ## 非目标
 

@@ -117,6 +117,29 @@ class TraceLogger:
             )
         )
 
+    def add_error(
+        self,
+        *,
+        step: str,
+        error: str,
+        details: Dict[str, Any] | None = None,
+    ) -> None:
+        blocks = [f"## {step}", "", f"- 错误：{error}"]
+        if details:
+            blocks.extend(
+                [
+                    "",
+                    "### 错误详情",
+                    "```json",
+                    _json_block(details),
+                    "```",
+                ]
+            )
+        if self._pending_llm_block:
+            blocks.extend(["", self._pending_llm_block])
+            self._pending_llm_block = None
+        self._sections.append("\n".join(blocks))
+
     def write(self) -> Path:
         LOG_DIR.mkdir(parents=True, exist_ok=True)
         path = LOG_DIR / f"{self.trace_id}.md"

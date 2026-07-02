@@ -1,6 +1,6 @@
 # AI PM 岗位判断工具 - 当前后端逻辑说明
 
-日期：2026-06-21  
+日期：2026-07-01  
 文档目的：记录当前已经实现的后端逻辑，便于后续继续开发、改规则、调 prompt、接更多能力。
 
 说明：
@@ -59,6 +59,19 @@
 
 - `/` 返回 `static/index.html`
 - `/static/*` 返回静态 JS / CSS
+
+当前还包含独立的前端交互验证页：
+
+- `static/design-preview.html`
+- `static/design-preview-01.html`
+
+说明：
+
+- 这些是设计验证用页面，不是正式首页
+- `design-preview.html` 用于验证 `输入 -> loading -> 结果聚焦` 的单屏交互
+- `design-preview-01.html` 用于验证梗化产品表达下的 `放瓜 -> 劈瓜 -> 看瓤` 三步页面
+- `design-preview-01.html` 内置读取 `static/assets/pigua/frame-01.png` 到 `frame-05.png` 作为卡皮巴拉劈瓜帧动画素材；素材缺失时显示占位，不影响主流程
+- 当前版本使用前端本地假数据，不调用 `/analyze`
 
 这意味着当前部署方式很简单：
 
@@ -145,18 +158,39 @@
 
 1. 接收前端输入
 2. 进入 `workflows.analyze_job_fit.run(...)`
-3. 执行 `JD 分析`
-4. 执行 `候选人分析`
+3. 执行 `JD 分析`（默认走 LLM 结构化抽取，失败 fallback 到规则版）
+4. 执行 `候选人分析`（默认走 LLM 结构化抽取，失败 fallback 到规则版）
 5. 执行 `匹配评分`
 6. 执行 `推荐结论`
 7. 执行 `文案生成`
-8. 如果配置了 LLM，在 `文案生成` 阶段调用一次 `enhance_v2_narration`
+8. 如果配置了 LLM，Step 1/2/5 均会调用真实 LLM
 9. 生成 `trace_id` 和单次流程日志
 10. 返回 v2 结构和兼容字段
 
 可以理解为：
 
-`规则判断是主链路，LLM 是最后一步的增强层，不是决策核心。`
+`规则判断仍控制最终 recommendation，LLM 已负责 Step 1/2 的结构化抽取和 Step 5 的结果增强。`
+
+## 5.1 v3 工作流（新增）
+
+除原有 v2 工作流外，新增了 `/analyze/v3` 入口，对应 `app/workflows/analyze_job_fit_v3.py`。
+
+v3 是 LLM-Native 的三步工作流：
+
+1. **Step 1：JD 分析**（LLM）
+   - 输出英文 key、中文枚举值/内容。
+   - 新增 `implied_requirements` 字段，输出 JD 原文背后的潜台词。
+   - 新增 `jd_core_judgment` 字段，一句话总结岗位本质。
+2. **Step 2：候选人分析**（LLM）
+   - 输出英文 key、中文枚举值/内容。
+   - 保留产品/商业视角证据和缺口。
+   - 新增 `candidate_match_summary` 字段，一句话总结匹配判断。
+3. **Step 3：终局判断**（LLM）
+   - 直接输出 `recommendation`、`match_score`、`summary`、`strengths`、`risks`、`next_actions`。
+   - 不再经过规则评分层。
+
+v3 工作流要求必须配置 `DASHSCOPE_API_KEY` 或 `OPENAI_API_KEY`，无 key 时返回 503。
+旧 `/analyze`（v2）继续保留，前端可逐步切换到 `/analyze/v3`。
 
 ## 6. 当前 v2 模块职责
 
@@ -175,23 +209,42 @@
 
 - [app/capabilities/jd_analysis.py](/Users/test/code/aipm_resume_analyzer/app/capabilities/jd_analysis.py)
 - [app/jd_parser.py](/Users/test/code/aipm_resume_analyzer/app/jd_parser.py)
+- [app/llm_client.py](/Users/test/code/aipm_resume_analyzer/app/llm_client.py) `extract_jd_with_llm(...)`
 
 职责：
 
-- 从原始 JD 文本抽岗位事实
+- 默认调用 LLM 从原始 JD 文本抽取结构化岗位画像
+- LLM 失败或未配置时，自动 fallback 到 `app/jd_parser.py` 规则版
 - 归一化成 `job_analysis`
 - 产出 `meta.jd_extraction` 与 `meta.jd_extraction_meta`
+
+新增字段：
+
+- `job_profile.industry_domain`：垂直行业（如 insurance、finance、healthcare）
+- `job_profile.business_orientation`：`business-heavy | tech-heavy | hybrid`
+- `job_profile.role_perspective`：`pm | engineer | hybrid`
+- `job_profile.enterprise_type`：`traditional_enterprise | ai_native | hybrid`
 
 ### 6.3 候选人分析
 
 - [app/capabilities/candidate_analysis.py](/Users/test/code/aipm_resume_analyzer/app/capabilities/candidate_analysis.py)
 - [app/resume_parser.py](/Users/test/code/aipm_resume_analyzer/app/resume_parser.py)
+- [app/llm_client.py](/Users/test/code/aipm_resume_analyzer/app/llm_client.py) `extract_candidate_with_llm(...)`
 
 职责：
 
-- 从简历文本抽候选人画像和证据
+- 默认调用 LLM 从简历文本抽取候选人画像、证据与缺口
+- LLM 会收到 `job_analysis`，用于判断角色错配
+- LLM 失败或未配置时，自动 fallback 到 `app/resume_parser.py` 规则版
 - 生成 `candidate_analysis`
 - 产出 `meta.resume_extraction`
+
+新增字段：
+
+- `candidate_profile.candidate_role_orientation`：`pm | engineer | researcher | ambiguous`
+- `candidate_evidence.product_evidence`：产品经理视角证据
+- `candidate_evidence.business_evidence`：业务/商业视角证据
+- `role_mismatch_flag`：当 JD 要求 PM 但候选人明显是 engineer/researcher 时为 `true`
 
 ### 6.4 匹配评分
 
@@ -227,7 +280,8 @@
   - `strengths`
   - `risks`
   - `next_actions`
-- 如果 LLM 可用，则只在这里调用一次真实模型
+- 如果 LLM 可用，则在 Step 5 调用一次真实模型做文案增强
+- Step 1/2 的结构化抽取不在这里，分别由 `jd_analysis.py` / `candidate_analysis.py` 负责
 
 ### 6.7 Trace 日志
 
@@ -241,7 +295,8 @@
   - 输入
   - 输出
   - 关键信息
-- 如果调用了 LLM，则把 request / response 记在 `步骤 5: 文案生成` 下面
+- 如果调用了 LLM，则把 request / response 记在对应步骤下面（Step 1/2/5 都会记录）
+
 ## 7. 当前返回结构
 
 当前返回同时包含两层：
@@ -271,13 +326,16 @@
 - 是否启用：
   - `llm_is_configured()`
 - 调用位置：
-  - `app/capabilities/narration.py`
+  - `app/capabilities/jd_analysis.py`（Step 1）
+  - `app/capabilities/candidate_analysis.py`（Step 2）
+  - `app/capabilities/narration.py`（Step 5）
 - 实际调用函数：
+  - `extract_jd_with_llm(...)`
+  - `extract_candidate_with_llm(...)`
   - `enhance_v2_narration(...)`
-- 当前每次分析最多只调用一次 LLM
-- 当前不会用 LLM 做 JD 抽取或简历抽取
-
-这不是改最终 recommendation，而是先改变匹配判断中的要求强度。
+- 当前每次分析最多调用 3 次 LLM
+- LLM 已参与 JD/简历结构化抽取和结果文案增强
+- 规则版 `app/jd_parser.py` / `app/resume_parser.py` 作为 fallback 保留
 
 ### 6.9 投递建议规则
 
@@ -540,7 +598,7 @@ meta.llm.error
 - 用户系统
 - 历史记录
 - 文件上传与 PDF 解析
-- 真正的 LLM 结构化抽取阶段
+- LLM 结构化抽取阶段（Step 1/2）已实现，但仍需测试集校准
 - Prompt 配置中心
 - 日志系统
 - 单元测试
@@ -561,10 +619,10 @@ meta.llm.error
 当前后端也有几个明显问题：
 
 1. 规则层仍然比较粗糙  
-   主要还是关键词命中，不是真语义理解。
+   主要还是关键词命中，不是真语义理解。已作为 LLM 失败 fallback。
 
-2. LLM 只做文案增强  
-   还没有参与更可靠的结构化抽取。
+2. LLM 已参与 Step 1/2 结构化抽取  
+   但仍需通过测试集持续验证输出稳定性。
 
 3. `user_level` 还没有真正进入评分逻辑  
    现在只是元信息。
@@ -579,8 +637,8 @@ meta.llm.error
 
 如果继续迭代后端，最合理的顺序应该是：
 
-1. 先把 LLM 输出来源在前端显式展示
-2. 再把 LLM 拆成 `抽取阶段 + 解释阶段`
+1. 继续用测试集校准 Step 1/2 的 LLM 提取稳定性
+2. 把 LLM 抽取来源在前端显式展示
 3. 再逐步削弱纯关键词规则的权重
 4. 最后再考虑持久化、历史记录和上传解析
 

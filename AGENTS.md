@@ -8,8 +8,12 @@
 
 - 后端：`FastAPI`
 - 前端：静态 `HTML + CSS + JS`
-- 判断主链路：`workflow + capabilities` 的 v2 架构
-- 文案增强：真实 LLM，可选启用
+- 判断主链路：
+  - v2：`workflow + capabilities` 架构，`/analyze` 入口。
+  - v3（新增）：三步 LLM-Native 工作流，`/analyze/v3` 入口。
+- 文案增强：真实 LLM，可选启用（v2）
+- 结构化抽取：JD / 简历默认优先由 LLM 抽取，失败 fallback 到规则 parser（v2）
+- v3 终局判断：JD / 简历分析后，由 LLM 直接输出 recommendation 与文案，不经过规则评分层
 - 调试方式：按次落盘的 Markdown 流程日志
 
 当前产品目标不是做完整求职平台，而是先跑通：
@@ -36,8 +40,8 @@
 - `app/llm_client.py`
   LLM 调用层，负责模型调用、JSON 解析、结果合并、fallback。
 
-- `app/prompts.py`
-  提示词统一维护位置。
+- `app/prompts.py` / `app/prompts_v3.py`
+  提示词统一维护位置。v2 prompt 在 `app/prompts.py`，v3 prompt 在 `app/prompts_v3.py`。
 
 - `static/`
   前端静态页面、样式和交互脚本。
@@ -66,7 +70,10 @@
   返回一组示例输入。
 
 - `POST /analyze`
-  核心分析接口。
+  核心分析接口（v2 工作流）。
+
+- `POST /analyze/v3`
+  新版分析接口（v3 LLM-Native 三步工作流，必须配置 LLM key）。
 
 ## 运行方式
 
@@ -108,12 +115,18 @@ http://127.0.0.1:8000
 
 ## 当前架构约定
 
+### v2 工作流（`/analyze`）
+
 - 规则层负责最终判断：
   - `recommendation`
   - `match_score`
   - `job_type`
 
-- LLM 当前只在 `步骤 5: 文案生成` 调用一次，负责结果增强：
+- LLM 默认负责 Step 1/2 结构化抽取：
+  - `job_analysis`：由 `extract_jd_with_llm` 生成，失败 fallback 到 `jd_parser`
+  - `candidate_analysis`：由 `extract_candidate_with_llm` 生成，会传入 `job_analysis` 用于角色错配判断，失败 fallback 到 `resume_parser`
+
+- LLM 在 Step 5 负责文案增强：
   - `summary`
   - `strengths`
   - `risks`
@@ -122,10 +135,26 @@ http://127.0.0.1:8000
 - 如果 LLM 不可用或返回异常：
   - 自动 fallback 到纯规则结果
 
-- 提示词不得散落在调用代码里：
-  - 统一维护在 `app/prompts.py`
+### v3 工作流（`/analyze/v3`）
 
-- 每次 `/analyze` 都会生成一份流程日志：
+- 三步均走 LLM：
+  - Step 1：JD 分析（`extract_jd_v3`），输出英文 key + 中文值
+  - Step 2：候选人分析（`extract_candidate_v3`），输出英文 key + 中文值
+  - Step 3：终局判断（`synthesize_final_v3`），直接输出 recommendation、match_score、文案
+- 无 LLM key 时返回 503，不做 fallback。
+- 相关代码独立放在 `app/prompts_v3.py`、`app/capabilities/*_v3.py`、`app/workflows/analyze_job_fit_v3.py`。
+- v3 的 Step 1/2 输出增加专家判断字段：
+  - `jd_core_judgment`
+  - `candidate_match_summary`
+- v3 的 JD 输出增加 `implied_requirements` 字段，用于表达 JD 原文背后的潜台词。
+
+### 通用约定
+
+- 提示词不得散落在调用代码里：
+  - v2 统一维护在 `app/prompts.py`
+  - v3 统一维护在 `app/prompts_v3.py`
+
+- 每次 `/analyze` 或 `/analyze/v3` 都会生成一份流程日志：
   - 文件位于 `logs/{trace_id}.md`
   - 返回里会带 `meta.trace_id` 和 `meta.trace_log_path`
 

@@ -1,20 +1,38 @@
 # 当前 Prompt 设计说明
 
-文档日期：2026-06-21  
+文档日期：2026-07-01  
 文档目的：记录当前已经实现的提示词设计意图、职责边界、输入输出约束和已知失败模式，便于后续继续调 prompt，而不是每次从代码里反推。
 
 关联代码：
 
-- [app/prompts.py](/Users/test/code/aipm_resume_analyzer/app/prompts.py)
-- [app/llm_client.py](/Users/test/code/aipm_resume_analyzer/app/llm_client.py)
+- v2：[app/prompts.py](/Users/test/code/aipm_resume_analyzer/app/prompts.py) + [app/llm_client.py](/Users/test/code/aipm_resume_analyzer/app/llm_client.py)
+- v3：[app/prompts_v3.py](/Users/test/code/aipm_resume_analyzer/app/prompts_v3.py) + [app/llm_client.py](/Users/test/code/aipm_resume_analyzer/app/llm_client.py)
+
+## 0. v3 Prompt 补充（2026-07-01 新增）
+
+2026-07-01 新增 `/analyze/v3` 后，prompt 体系分为两套：
+
+- **v2 prompt**（`app/prompts.py`）：服务 `/analyze`，规则判断主导 recommendation，LLM 负责 Step 1/2 抽取和 Step 5 文案增强。
+- **v3 prompt**（`app/prompts_v3.py`）：服务 `/analyze/v3`，三步均走 LLM，终局判断也由 LLM 直接输出。
+
+v3 prompt 的核心差异：
+
+1. **英文 key + 中文枚举值**：不再把中文值翻译回英文。
+2. **输出更短**：数组上限从 4-6 条降到 3 条，prompt 去掉完整 schema dump。
+3. **增加专家判断字段**：`implied_requirements`、`jd_core_judgment`、`candidate_match_summary`。
+4. **终局 prompt 直接输出 recommendation 和文案**：不再依赖规则评分结果。
+
+v3 详细设计见 [docs/prompt-redesign-v2.md](docs/prompt-redesign-v2.md) 第九章。
 
 ## 1. 当前 Prompt 的定位
 
-当前 prompt 只服务一个任务：
+当前 prompt 服务三类任务：
 
-- 在 v2 规则分析结果基础上，生成更自然、更具体的中文结果文案
+1. **JD 结构化抽取**（Step 1）
+2. **简历结构化抽取**（Step 2）
+3. **结果文案增强**（Step 5）
 
-它不负责：
+它们不负责：
 
 - 判断最终 `recommendation`
 - 重算 `weighted_match_score`
@@ -23,7 +41,8 @@
 
 结论：
 
-- 当前 LLM 是 `结果增强层`
+- 当前 LLM 在 Step 1/2 是 `结构化抽取层`
+- 当前 LLM 在 Step 5 是 `结果增强层`
 - 当前规则引擎是 `决策主链路`
 
 ## 2. 为什么这样设计
@@ -44,14 +63,20 @@
 
 ## 3. 当前 Prompt 结构
 
-当前真实生效的是 `v2 narrator prompt`，分为两部分：
+当前真实生效的是三类 prompt，代码位置都在 [app/prompts.py](/Users/test/code/aipm_resume_analyzer/app/prompts.py)：
 
-1. `system prompt`
-2. `user prompt`
-
-代码位置在 [app/prompts.py](/Users/test/code/aipm_resume_analyzer/app/prompts.py)。
+1. `JD_EXTRACTION_SYSTEM_PROMPT` + `build_jd_extraction_user_prompt(jd_text)`
+2. `CANDIDATE_EXTRACTION_SYSTEM_PROMPT` + `build_candidate_extraction_user_prompt(resume_text, job_analysis)`
+3. `V2_NARRATOR_SYSTEM_PROMPT` + `build_v2_narrator_user_prompt(payload)`
 
 ### 3.1 System Prompt 的职责
+
+当前 `JD_EXTRACTION_SYSTEM_PROMPT` 和 `CANDIDATE_EXTRACTION_SYSTEM_PROMPT` 约束抽取行为：
+
+- 只能基于输入文本，不能编造
+- 枚举字段必须严格使用给定值
+- 缺失字段返回空字符串或空数组
+- 只输出合法 JSON
 
 当前 `V2_NARRATOR_SYSTEM_PROMPT` 的作用是给模型划硬边界。
 
@@ -92,6 +117,29 @@
 
 ## 4. 当前输入设计
 
+### 4.1 抽取类 Prompt 输入
+
+JD 抽取只接收原始文本：
+
+```text
+raw_jd_text
+```
+
+简历抽取接收原始简历 + 目标岗位关键信息：
+
+```json
+{
+  "role_perspective": "pm | engineer | hybrid",
+  "business_orientation": "business-heavy | tech-heavy | hybrid",
+  "industry_domain": "...",
+  "must_have": []
+}
+```
+
+以及完整 `resume_text`。
+
+### 4.2 Narrator Prompt 输入
+
 当前 user prompt 输入的是一个结构化 `payload`，字段包括：
 
 ```json
@@ -122,6 +170,31 @@
   给模型一点上下文，帮助文案更贴用户状态
 
 ## 5. 当前输出设计
+
+### 5.1 抽取类 Prompt 输出
+
+JD 抽取输出对应 `job_analysis`：
+
+```json
+{
+  "job_profile": { ... },
+  "job_requirements": { ... },
+  "job_risk_flags": { ... }
+}
+```
+
+简历抽取输出对应 `candidate_analysis`：
+
+```json
+{
+  "candidate_profile": { ... },
+  "candidate_evidence": { ... },
+  "missing_evidence": { ... },
+  "role_mismatch_flag": true
+}
+```
+
+### 5.2 Narrator Prompt 输出
 
 模型被要求只返回 4 个字段：
 
@@ -237,7 +310,10 @@
   如果 `resume_text` 和 `rule_result` 给出的信号不一致，prompt 里没有专门说明如何处理。
 
 - `没有拆成抽取和生成两步`
-  当前模型同时看原始文本和规则结果，未来复杂度上来后可能会互相干扰。
+  当前已经拆成 JD 抽取、简历抽取、narrator 三步，但每步 prompt 仍需持续调优。
+
+- `抽取 prompt 的字段边界仍需测试集校准`
+  新增字段（如 `industry_domain`、`business_orientation`、`candidate_role_orientation`）稳定性依赖真实 JD/简历样本验证。
 
 - `日志里会保留完整 request / response`
   当前这是为了调试方便，但后续如果进入外部环境，需要补脱敏或日志开关。
@@ -323,6 +399,6 @@
 
 当前 prompt 的本质不是“让模型更聪明”，而是：
 
-- 在规则结论不变的前提下
-- 让结果更像人话
+- 在 Step 1/2 让模型稳定抽取结构化信号
+- 在 Step 5 在规则结论不变的前提下，让结果更像人话
 - 同时尽量不失控
